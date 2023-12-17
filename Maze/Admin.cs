@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+﻿using MazeGenerator;
+using System;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms;
 
 namespace Maze
 {
@@ -75,14 +69,71 @@ namespace Maze
 
         private void Generate_Click(object sender, EventArgs e)
         {
+            int gridWidth = (int)width.Value;
+            int gridHeight = (int)height.Value;
+            if (radioButtonEuler.Checked)
+            {
+                MazeGeneratorEuler mazeGeneratorEuler = new MazeGeneratorEuler(gridWidth, gridHeight);
+                mazeGeneratorEuler.GenerateMaze();
+                DrawMaze(mazeGeneratorEuler);
+            }
+            else if (radioButtonAldousBroder.Checked)
+            {
+                MazeGeneratorAldousBroder mazeGeneratorAldousBroder = new MazeGeneratorAldousBroder(gridWidth, gridHeight);
+                mazeGeneratorAldousBroder.GenerateMaze();
+                DrawMaze(mazeGeneratorAldousBroder);
+            }
 
-            //int gridWidth = gridArray.GetLength(0);
-            //int gridHeight = gridArray.GetLength(1);
-            //bool[,] maze = GenerateMaze(gridWidth, gridHeight);
-            //pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            //DrawMaze(maze);
         }
+        private void DrawMaze(IMazeGenerator mazeGenerator = null)
+        {
+            int gridWidth = (int)width.Value;
+            int gridHeight = (int)height.Value;
 
+            float cellWidth = (float)pictureBox1.Width / gridWidth;
+            float cellHeight = (float)pictureBox1.Height / gridHeight;
+
+            Pen wallPen = new Pen(Color.Black, 2f);
+            SolidBrush cellBrush = new SolidBrush(Color.White);
+            SolidBrush startFinishBrush = new SolidBrush(Color.Green);
+
+
+            if (pictureBox1.Image == null || pictureBox1.Image.Width != pictureBox1.Width || pictureBox1.Image.Height != pictureBox1.Height)
+            {
+                if (pictureBox1.Image != null)
+                {
+                    pictureBox1.Image.Dispose();
+                }
+                pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+            }
+            using (Graphics g = Graphics.FromImage(pictureBox1.Image))
+            {
+               
+                g.Clear(Color.White);
+                for (int row = 0; row < gridWidth; row++)
+                {
+                    for (int col = 0; col < gridHeight; col++)
+                    {
+                        int x = (int)(row * cellWidth);
+                        int y = (int)(col * cellHeight);
+                        int nextX = (int)((row + 1) * cellWidth);
+                        int nextY = (int)((col + 1) * cellHeight);
+
+                        g.FillRectangle(cellBrush, x, y, cellWidth, cellHeight);
+                        g.DrawRectangle(wallPen, x, y, nextX - x, nextY - y);
+
+                        if (mazeGenerator.maze[row, col] == true)
+                        {
+                            g.FillRectangle(startFinishBrush, x, y, cellWidth, cellHeight);
+                        }
+
+                    }
+                }
+
+            }
+            pictureBox1.Invalidate();
+
+        }
         private void AdminAboutUs_Click(object sender, EventArgs e)
         {
             Form customMessageBox = new Form();

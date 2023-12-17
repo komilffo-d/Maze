@@ -64,6 +64,10 @@
     <Compile Include="Gamer.Designer.cs">
       <DependentUpon>Gamer.cs</DependentUpon>
     </Compile>
+    <Compile Include="IMazeGenerator.cs" />
+    <Compile Include="ListExtentions.cs" />
+    <Compile Include="MazeGeneratorAldousBroder.cs" />
+    <Compile Include="MazeGeneratorEuler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Registration.cs">

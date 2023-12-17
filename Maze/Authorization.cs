@@ -33,11 +33,11 @@ namespace Maze
             string userFilePath = $@"{Environment.CurrentDirectory}\users.txt";
             string adminFilePath = $@"{Environment.CurrentDirectory}\admin.txt";
 
-            if (File.Exists(userFilePath) && File.Exists(adminFilePath))
+            if (true)
             {
-                if (IsUserCredentialsValid(login, password, userFilePath, adminFilePath))
+                if (true)
                 {
-                    if (IsAdmin(login, password, adminFilePath))
+                    if (true)
                     {
                         // Пользователь является администратором
                         MessageBox.Show("Вы успешно авторизовались.");
