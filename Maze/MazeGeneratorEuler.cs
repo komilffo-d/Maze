@@ -10,19 +10,6 @@ namespace MazeGenerator
         public int height { get; set; }
         public bool[,] maze { get; set; }
 
-        public List<Tuple<int, int>> this[int x, int y]
-        {
-            get
-            {
-                List<Tuple<int, int>> neighbors = new List<Tuple<int, int>>();
-                if (x > 1) neighbors.Add(new Tuple<int, int>(x - 2, y));
-                if (x < width - 2) neighbors.Add(new Tuple<int, int>(x + 2, y));
-                if (y > 1) neighbors.Add(new Tuple<int, int>(x, y - 2));
-                if (y < height - 2) neighbors.Add(new Tuple<int, int>(x, y + 2));
-                neighbors.Shuffle<Tuple<int, int>>();
-                return neighbors;
-            }
-        }
 
         public MazeGeneratorEuler(int width, int height)
         {

@@ -173,6 +173,7 @@
             this.saveToFile.TabIndex = 22;
             this.saveToFile.Text = "Сохранить лабиринт в файл";
             this.saveToFile.UseVisualStyleBackColor = false;
+            this.saveToFile.Click += new System.EventHandler(this.saveToFile_Click);
             // 
             // EntryExit
             // 

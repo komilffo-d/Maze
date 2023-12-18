@@ -1,14 +1,18 @@
 ﻿using MazeGenerator;
+using Syroot.Windows.IO;
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace Maze
 {
     public partial class Admin : Form
     {
-        private Point[,] gridArray; // Массив для хранения координат
+        private Point[,] gridArray;// Массив для хранения координат
+        private bool[,] FillWallsArray;
 
         public Admin()
         {
@@ -97,7 +101,7 @@ namespace Maze
             SolidBrush cellBrush = new SolidBrush(Color.White);
             SolidBrush startFinishBrush = new SolidBrush(Color.Green);
 
-
+            FillWallsArray = mazeGenerator.maze;
             if (pictureBox1.Image == null || pictureBox1.Image.Width != pictureBox1.Width || pictureBox1.Image.Height != pictureBox1.Height)
             {
                 if (pictureBox1.Image != null)
@@ -114,15 +118,17 @@ namespace Maze
                 {
                     for (int col = 0; col < gridHeight; col++)
                     {
-                        int x = (int)(row * cellWidth);
-                        int y = (int)(col * cellHeight);
-                        int nextX = (int)((row + 1) * cellWidth);
-                        int nextY = (int)((col + 1) * cellHeight);
+                        int x = (int)(col * cellWidth);
+                        int y = (int)(row * cellHeight);
+
+                        int nextX = (int)((col + 1) * cellWidth);
+                        int nextY = (int)((row + 1) * cellHeight);
+
 
                         g.FillRectangle(cellBrush, x, y, cellWidth, cellHeight);
                         g.DrawRectangle(wallPen, x, y, nextX - x, nextY - y);
 
-                        if (mazeGenerator.maze[row, col] == true)
+                        if (FillWallsArray[row, col] == true)
                         {
                             g.FillRectangle(startFinishBrush, x, y, cellWidth, cellHeight);
                         }
@@ -163,6 +169,48 @@ namespace Maze
             {
                 MessageBox.Show("Файл не найден", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void saveToFile_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "XML файлы (*.xml)|*.xml";
+            saveFileDialog.InitialDirectory = KnownFolders.Downloads.Path;
+            if(FillWallsArray is null || FillWallsArray?.Length == 0)
+            {
+                MessageBox.Show("Генерация лабиринта не выполнена!");
+                return;
+            }
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK )
+            {
+                XmlWriterSettings settings = new XmlWriterSettings();
+                settings.Indent = true;
+
+                using (XmlWriter writer = XmlWriter.Create(saveFileDialog.FileName, settings))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("Matrix");
+
+                    for (int i = 0; i < FillWallsArray.GetLength(0); i++)
+                    {
+                        writer.WriteStartElement("Row");
+
+                        for (int j = 0; j < FillWallsArray.GetLength(1); j++)
+                        {
+                            writer.WriteElementString("Cell", FillWallsArray[i, j].ToString());
+                        }
+
+                        writer.WriteEndElement();
+                    }
+
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                    MessageBox.Show("Лабиринт успешно сохранён в файл!");
+                }
+            }
+
+                
         }
     }
 }
