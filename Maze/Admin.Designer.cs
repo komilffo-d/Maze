@@ -45,14 +45,14 @@
             this.modeGroupBox = new System.Windows.Forms.GroupBox();
             this.radioButtonAdminAuto = new System.Windows.Forms.RadioButton();
             this.radioButtonAdminHands = new System.Windows.Forms.RadioButton();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.altGroupBox = new System.Windows.Forms.GroupBox();
             this.radioButtonAldousBroder = new System.Windows.Forms.RadioButton();
             this.radioButtonEuler = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.widthUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.heightUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).BeginInit();
             this.modeGroupBox.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            this.altGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // AdminAboutUs
@@ -190,6 +190,7 @@
             this.EntryExit.Text = "Расставить вход и выход";
             this.EntryExit.UseVisualStyleBackColor = false;
             this.EntryExit.Visible = false;
+            this.EntryExit.Click += new System.EventHandler(this.EntryExit_Click);
             // 
             // Generate
             // 
@@ -322,18 +323,18 @@
             this.radioButtonAdminHands.Text = "Ручной режим";
             this.radioButtonAdminHands.UseVisualStyleBackColor = true;
             // 
-            // groupBox2
+            // altGroupBox
             // 
-            this.groupBox2.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.groupBox2.Controls.Add(this.radioButtonAldousBroder);
-            this.groupBox2.Controls.Add(this.radioButtonEuler);
-            this.groupBox2.Location = new System.Drawing.Point(9, 336);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(2);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox2.Size = new System.Drawing.Size(403, 57);
-            this.groupBox2.TabIndex = 29;
-            this.groupBox2.TabStop = false;
+            this.altGroupBox.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.altGroupBox.Controls.Add(this.radioButtonAldousBroder);
+            this.altGroupBox.Controls.Add(this.radioButtonEuler);
+            this.altGroupBox.Location = new System.Drawing.Point(9, 336);
+            this.altGroupBox.Margin = new System.Windows.Forms.Padding(2);
+            this.altGroupBox.Name = "altGroupBox";
+            this.altGroupBox.Padding = new System.Windows.Forms.Padding(2);
+            this.altGroupBox.Size = new System.Drawing.Size(403, 57);
+            this.altGroupBox.TabIndex = 29;
+            this.altGroupBox.TabStop = false;
             // 
             // radioButtonAldousBroder
             // 
@@ -369,7 +370,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDark;
             this.ClientSize = new System.Drawing.Size(831, 514);
-            this.Controls.Add(this.groupBox2);
+            this.Controls.Add(this.altGroupBox);
             this.Controls.Add(this.pictureMaze);
             this.Controls.Add(this.heightUpDown);
             this.Controls.Add(this.widthUpDown);
@@ -396,8 +397,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).EndInit();
             this.modeGroupBox.ResumeLayout(false);
             this.modeGroupBox.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.altGroupBox.ResumeLayout(false);
+            this.altGroupBox.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -421,7 +422,7 @@
         private System.Windows.Forms.GroupBox modeGroupBox;
         private System.Windows.Forms.RadioButton radioButtonAdminAuto;
         private System.Windows.Forms.RadioButton radioButtonAdminHands;
-        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox altGroupBox;
         private System.Windows.Forms.RadioButton radioButtonAldousBroder;
         private System.Windows.Forms.RadioButton radioButtonEuler;
     }

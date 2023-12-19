@@ -23,8 +23,8 @@ namespace Maze
         }
         private StepForm stepForm = StepForm.NOTCREATETEMPLATE;
         private bool[,] FillWallsArray;
-        private Point startPoint;
-        private Point endPoint;
+        private Point? startPoint = null;
+        private Point? endPoint = null;
         private uint gridWidth;
         private uint gridHeight;
         public Admin()
@@ -38,7 +38,6 @@ namespace Maze
             gridWidth = (uint)widthUpDown.Value;
             gridHeight = (uint)heightUpDown.Value;
             DrawMaze();
-            Generate.Visible = true;
             stepForm = StepForm.CREATEDTEMPLATE;
         }
         private bool[,] List2DToArray(List<List<bool>> listBoolean)
@@ -61,7 +60,7 @@ namespace Maze
         }
         private void Generate_Click(object sender, EventArgs e)
         {
-
+            
             if (radioButtonEuler.Checked)
             {
                 bool[,] maze = List2DToArray(MazeGeneratorEuler.GenerateMaze(gridWidth / 2, gridHeight / 2));
@@ -78,29 +77,26 @@ namespace Maze
             stepForm = StepForm.GENERATEDMAZE;
 
         }
-        static Tuple<Point, Point> FindFreeSpaces(bool[,] maze)
+        private Tuple<Point, Point> FindFreeSpaces(bool[,] maze)
         {
 
-            int randomRow, randomCol;
-            Point startPoint = new Point();
-            Point endPoint = new Point();
-            double distance = 0.0;
+            int randomRowStart, randomRowEnd;
+            Point startPoint, endPoint;
             do
             {
                 Random random = new Random();
+                randomRowStart = random.Next(0, maze.GetLength(0));
+                startPoint = new Point(randomRowStart, 0);
 
-                // Генерируйте случайные индексы
-                randomRow = random.Next(0, maze.GetLength(0));
-                randomCol = random.Next(0, maze.GetLength(1));
-                startPoint = new Point(randomRow, randomCol);
+                randomRowEnd = random.Next(0, maze.GetLength(1));
+                endPoint = new Point(randomRowEnd, (int)gridHeight - 1);
 
-                randomRow = random.Next(0, maze.GetLength(0));
-                randomCol = random.Next(0, maze.GetLength(1));
-
-                endPoint = new Point(randomRow, randomCol);
-
-                distance = Math.Sqrt(Math.Pow(endPoint.X - startPoint.X, 2) + Math.Pow(endPoint.Y - startPoint.Y, 2));
-            } while (distance < 7.0 || maze[startPoint.X, startPoint.Y]==true | maze[endPoint.X, endPoint.Y] == true);
+            } while (randomRowStart == 0 ||
+                    randomRowStart == gridWidth - 1 ||
+                    randomRowEnd == 0 ||
+                    randomRowEnd == gridHeight - 1 ||
+                    maze[randomRowStart,1]==true ||
+                    maze[randomRowEnd, (int)gridHeight - 2] == true);
 
             return new Tuple<Point, Point>(startPoint, endPoint);
         }
@@ -117,7 +113,7 @@ namespace Maze
 
             SolidBrush endPointBrush = new SolidBrush(Color.Red);
 
-            FillWallsArray = mazeMatrix;
+            FillWallsArray = mazeMatrix is null ? FillWallsArray is null ? null : FillWallsArray : mazeMatrix;
             if (pictureMaze.Image == null || pictureMaze.Image.Width != pictureMaze.Width || pictureMaze.Image.Height != pictureMaze.Height)
             {
                 if (pictureMaze.Image != null)
@@ -154,15 +150,15 @@ namespace Maze
 
                 if (startPoint != null)
                 {
-                    int x = (int)(startPoint.Y * cellWidth);
-                    int y = (int)(startPoint.X * cellHeight);
+                    int x = (int)(startPoint?.Y * cellWidth);
+                    int y = (int)(startPoint?.X * cellHeight);
                     g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
                 }
 
                 if (endPoint != null)
                 {
-                    int x = (int)(endPoint.Y * cellWidth);
-                    int y = (int)(endPoint.X * cellHeight);
+                    int x = (int)(endPoint?.Y * cellWidth);
+                    int y = (int)(endPoint?.X * cellHeight);
                     g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
                 }
 
@@ -224,11 +220,11 @@ namespace Maze
                 }
                 if (startPoint != null)
                 {
-                    writer.WriteElementString("StartPoint", $"{startPoint.X}:{startPoint.Y}");
+                    writer.WriteElementString("StartPoint", $"{startPoint?.X}:{startPoint?.Y}");
                 }
                 if (endPoint != null)
                 {
-                    writer.WriteElementString("EndPoint", $"{endPoint.X}:{endPoint.Y}");
+                    writer.WriteElementString("EndPoint", $"{endPoint?.X}:{endPoint?.Y}");
                 }
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
@@ -284,6 +280,7 @@ namespace Maze
             {
                 rdb.MouseUp += ModeRadioButtons_CheckedChanged;
             }
+
         }
         private void ModeRadioButtons_CheckedChanged(object sender, EventArgs e)
         {
@@ -303,12 +300,13 @@ namespace Maze
                         break;
                 }
             }
+            startPoint = null;
+            endPoint = null;
+            DrawMaze();
         }
 
         private void pictureMaze_Click(object sender, EventArgs e)
         {
-            uint gridWidth = (uint)FillWallsArray.GetLength(0);
-            uint gridHeight = (uint)FillWallsArray.GetLength(1);
             float cellWidth = (float)pictureMaze.Width / gridWidth;
             float cellHeight = (float)pictureMaze.Height / gridHeight;
             MouseEventArgs me = (MouseEventArgs)e;
@@ -321,7 +319,7 @@ namespace Maze
                     break;
                 case StepForm.GENERATEDMAZE:
 
-                    if (FillWallsArray[cellRowIndex, cellColumnIndex] == false)
+                    if ((cellRowIndex == 0 || cellColumnIndex == 0 || cellRowIndex == gridHeight - 1 || cellColumnIndex == gridWidth - 1) && FillWallsArray[cellRowIndex, cellColumnIndex] == true)
                     {
                         startPoint = new Point(cellRowIndex, cellColumnIndex);
                         DrawMaze(FillWallsArray);
@@ -330,7 +328,7 @@ namespace Maze
 
                     break;
                 case StepForm.SETPOINTENTRY:
-                    if (FillWallsArray[cellRowIndex, cellColumnIndex] == false)
+                    if ((cellRowIndex == 0 || cellColumnIndex == 0 || cellRowIndex == gridHeight - 1 || cellColumnIndex == gridWidth - 1) && FillWallsArray[cellRowIndex, cellColumnIndex] == true)
                     {
                         endPoint = new Point(cellRowIndex, cellColumnIndex);
                         DrawMaze(FillWallsArray);
@@ -344,6 +342,11 @@ namespace Maze
 
             }
 
+
+        }
+
+        private void EntryExit_Click(object sender, EventArgs e)
+        {
 
         }
     }
