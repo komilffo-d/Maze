@@ -29,15 +29,15 @@ namespace Maze
         {
             string login = AInputLogin.Text;
             string password = AInputPassword.Text;
-            
+
             string userFilePath = $@"{Environment.CurrentDirectory}\users.txt";
             string adminFilePath = $@"{Environment.CurrentDirectory}\admin.txt";
 
-            if (true)
+            if (File.Exists(userFilePath) && File.Exists(adminFilePath))
             {
-                if (true)
+                if (IsUserCredentialsValid(login, password, userFilePath, adminFilePath))
                 {
-                    if (true)
+                    if (IsAdmin(login, password, adminFilePath))
                     {
                         // Пользователь является администратором
                         MessageBox.Show("Вы успешно авторизовались.");
