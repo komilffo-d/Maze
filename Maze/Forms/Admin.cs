@@ -29,7 +29,7 @@ namespace Maze
         private uint gridWidth;
         private uint gridHeight;
 
-        private EStepForm _stepForm= EStepForm.NOTCREATETEMPLATE;
+        private EStepForm _stepForm = EStepForm.NOTCREATETEMPLATE;
 
         private protected EStepForm StepForm
         {
@@ -45,9 +45,25 @@ namespace Maze
             switch (StepForm)
             {
                 case EStepForm.NOTCREATETEMPLATE:
+
+                    pictureMaze.Image = null;
+                    pictureMaze.BackColor = Color.White;
+                    pictureMaze.Invalidate();
+                    FillWallsArray = null;
+                    startPoint = null;
+                    endPoint = null;
+                    gridWidth = default;
+                    gridHeight = default;
+
+                    widthUpDown.Value = 15;
+                    heightUpDown.Value = 15;
+
+
                     Generate.Visible = false;
                     EntryExit.Enabled = false;
                     EntryExit.Visible = false;
+
+
                     break;
                 case EStepForm.CREATEDTEMPLATE:
                     if (radioButtonAdminAuto.Checked)
@@ -77,15 +93,16 @@ namespace Maze
                     EntryExit.Visible = false;
                     break;
                 case EStepForm.GENERATEDMAZE:
-                     if (radioButtonAdminAuto.Checked)
+                    if (radioButtonAdminAuto.Checked)
                     {
                         (startPoint, endPoint) = RandomStartEndPoints(FillWallsArray);
                         DrawMaze();
                     }
-                        
-                    
+
+
                     break;
                 case EStepForm.EXPORTEDMAZE:
+                    StepForm = EStepForm.NOTCREATETEMPLATE;
                     break;
 
             }
@@ -316,9 +333,6 @@ namespace Maze
                         SaveMatrixToXml(saveFileDialog.FileName);
                         StepForm = EStepForm.EXPORTEDMAZE;
                     }
-                    break;
-
-                case EStepForm.EXPORTEDMAZE:
                     break;
             }
 

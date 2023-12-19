@@ -2,6 +2,8 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Net;
+
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -40,18 +42,61 @@ namespace Maze
             switch (StepForm)
             {
                 case EStepForm.UNLOADMAZE:
+                    label3.Visible = true;
+                    ModePassGroupBox.Visible = true;
+                    pictureMaze.Image = null;
+                    pictureMaze.Invalidate();
+                    pictureBox2.Enabled = false;
+                    pictureBox2.Visible = false;
+                    FillWallsArray = null;
+                    startPoint = null;
+                    endPoint = null;
+                    gridWidth = default;
+                    gridHeight = default;
+                    label4.Visible = false;
+                    label5.Visible = false;
                     startGame.Visible = false;
+                    startGame.Enabled = false;
+                    algorithmGroupBox.Visible = false;
+                    trackBarSpeed.Visible = false;
+                    trackBarSpeed.Enabled = false;
+                    radioButtonHands.Checked = true;
+                    radioButtonHalloween.Checked = true;
+                    ThemeRadioButtons_CheckedChanged(radioButtonHalloween, null);
+                    ModeRadioButtons_CheckedChanged(radioButtonHands, null);
                     break;
                 case EStepForm.LOADEDMAZE:
-                     gridWidth = (uint)FillWallsArray.GetLength(1);
-                     gridHeight = (uint)FillWallsArray.GetLength(0);
+                    label3.Visible = true;
+                    ModePassGroupBox.Visible = true;
+                    pictureBox2.Enabled = false;
+                    pictureBox2.Visible = false;
+                    gridWidth = (uint)FillWallsArray.GetLength(1);
+                    gridHeight = (uint)FillWallsArray.GetLength(0);
                     startGame.Visible = true;
+                    startGame.Enabled = true;
+                    trackBarSpeed.Enabled = true;
+                    radioButtonHands.Checked = true;
+                    radioButtonHalloween.Checked = true;
+                    ThemeRadioButtons_CheckedChanged(radioButtonHalloween, null);
+                    ModeRadioButtons_CheckedChanged(radioButtonHands, null);
                     break;
                 case EStepForm.BEGANPASS:
+                    label3.Visible = false;
+                    ModePassGroupBox.Visible = false;
+                    label4.Visible = false;
+                    algorithmGroupBox.Visible = false;
                     startGame.Visible = false;
+                    startGame.Enabled = false;
+                    trackBarSpeed.Visible = false;
+                    trackBarSpeed.Enabled = false;
+                    pictureMaze.Focus();
+                    if (radioButtonAuto.Checked)
+                        AutoPassMaze();
                     break;
                 case EStepForm.ENDPASS:
+
                     startGame.Visible = false;
+                    startGame.Enabled = false;
                     break;
 
             }
@@ -61,7 +106,11 @@ namespace Maze
         {
             InitializeComponent();
         }
+        private void clearAll()
+        {
 
+            StepForm = EStepForm.UNLOADMAZE;
+        }
         private void aboutUs_Click(object sender, EventArgs e)
         {
             Form customMessageBox = new Form();
@@ -109,19 +158,19 @@ namespace Maze
                 MoveCharacter(cellRowIndex, cellColumnIndex - 1);
                 return;
             }
-               
+
             else if (e.KeyCode == Keys.Right && pictureBox2.Right < pictureMaze.Width && cellColumnIndex < FillWallsArray.GetLength(1) && FillWallsArray[cellRowIndex, cellColumnIndex + 1] == false)
             {
                 MoveCharacter(cellRowIndex, cellColumnIndex + 1);
                 return;
             }
-                
+
             else if (e.KeyCode == Keys.Up && pictureBox2.Location.Y > 0 && cellRowIndex > 0 && FillWallsArray[cellRowIndex - 1, cellColumnIndex] == false)
             {
                 MoveCharacter(cellRowIndex - 1, cellColumnIndex);
                 return;
             }
-               
+
             else if (e.KeyCode == Keys.Down && pictureBox2.Bottom < pictureMaze.Height && cellRowIndex < FillWallsArray.GetLength(0) && FillWallsArray[cellRowIndex + 1, cellColumnIndex] == false)
             {
                 MoveCharacter(cellRowIndex + 1, cellColumnIndex);
@@ -144,6 +193,7 @@ namespace Maze
             if ((cellRowIndex, cellColumnIndex) == (endPoint?.X, endPoint?.Y))
             {
                 MessageBox.Show("Лабиринт пройден!");
+                clearAll();
             }
         }
 
@@ -350,79 +400,88 @@ namespace Maze
                 switch (radioButton.Name)
                 {
                     case "radioButtonHands":
-
+                        label4.Visible = false;
+                        algorithmGroupBox.Visible = false;
+                        trackBarSpeed.Visible = false;
                         break;
                     case "radioButtonAuto":
                         label4.Visible = true;
                         algorithmGroupBox.Visible = true;
+                        trackBarSpeed.Visible = true;
+
                         break;
                 }
             }
         }
-        private async void startGame_Click(object sender, EventArgs e)
+        private void startGame_Click(object sender, EventArgs e)
         {
-            switch (StepForm)
+            if (FillWallsArray is null || FillWallsArray?.Length == 0)
+                return;
+            float cellWidth = (float)pictureMaze.Width / gridWidth;
+            float cellHeight = (float)pictureMaze.Height / gridHeight;
+            Image image = Image.FromFile(@"Resources\mario.png");
+
+            Bitmap bit = new Bitmap(image);
+            bit.MakeTransparent();
+            pictureBox2.Image = bit;
+            pictureBox2.Size = Size.Round(new SizeF(Convert.ToInt32(cellWidth), Convert.ToInt32(cellHeight)));
+            pictureMaze.Controls.Add(pictureBox2);
+            pictureBox2.BackColor = Color.Transparent;
+            int X = Convert.ToInt32(startPoint?.Y * cellWidth + 0.5f);
+            int Y = Convert.ToInt32((startPoint?.X) * cellHeight + 0.5f);
+            pictureBox2.Location = new Point(X, Y);
+            pictureBox2.Enabled = true;
+            pictureBox2.Visible = true;
+
+            pictureMaze.Invalidate();
+            pictureBox2.Invalidate();
+            StepForm = EStepForm.BEGANPASS;
+        }
+        private async void AutoPassMaze()
+        {
+            int[,] intArray = new int[gridHeight, gridWidth];
+
+            for (int i = 0; i < gridHeight; i++)
             {
-                case EStepForm.UNLOADMAZE:
-                    break;
-                case EStepForm.LOADEDMAZE:
-                    if (FillWallsArray is null || FillWallsArray?.Length == 0)
-                        return;
-                    float cellWidth = (float)pictureMaze.Width / gridWidth;
-                    float cellHeight = (float)pictureMaze.Height / gridHeight;
-                    Image image = Image.FromFile(@"Resources\mario.png");
-
-                    Bitmap bit = new Bitmap(image);
-                    bit.MakeTransparent();
-
-                    pictureBox2.Image = bit;
-                    pictureBox2.Size = Size.Round(new SizeF(Convert.ToInt32(cellWidth), Convert.ToInt32(cellHeight)));
-                    pictureMaze.Controls.Add(pictureBox2);
-                    pictureBox2.BackColor = Color.Transparent;
-                    int X = Convert.ToInt32(startPoint?.Y * cellWidth + 0.5f);
-                    int Y = Convert.ToInt32((startPoint?.X) * cellHeight + 0.5f);
-                    pictureBox2.Location = new Point(X, Y);
-                    pictureBox2.Enabled = true;
-                    pictureBox2.Visible = true;
-
-                    pictureMaze.Invalidate();
-                    pictureBox2.Invalidate();
-                    StepForm = EStepForm.BEGANPASS;
-                    break;
-                case EStepForm.BEGANPASS:
-                    int rows = FillWallsArray.GetLength(0);
-                    int columns = FillWallsArray.GetLength(1);
-
-                    int[,] intArray = new int[rows, columns];
-
-                    for (int i = 0; i < rows; i++)
-                    {
-                        for (int j = 0; j < columns; j++)
-                        {
-                            intArray[i, j] = FillWallsArray[i, j] ? 1 : 0;
-                        }
-                    }
-                    /*                    var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
-                                        var start = new WaveResolver.Point(startPoint.Item1,startPoint.Item2);
-                                        var end = new WaveResolver.Point(endPoint?.X, endPoint?.Y);*/
-                    /*                    var path = searcher.Search(intArray, start, end);*/
-                    var path = HandSolver.SolveMaze(intArray, new int[] { (int)startPoint?.X,(int) startPoint?.Y }, new int[] { (int)endPoint?.X, (int)endPoint?.Y - 1 });
-                    for (int i = 0; i < path.GetLength(0); i++)
-                    {
-
-                        await Task.Delay(1000 / trackBarSpeed.Value);
-                        MoveCharacter(path[i, 0], path[i, 1]);
-
-
-                    }
-                    MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
-                    break;
-                case EStepForm.ENDPASS:
-
-                    break;
-                default:
-                    break;
+                for (int j = 0; j < gridWidth; j++)
+                {
+                    intArray[i, j] = FillWallsArray[i, j] ? 1 : 0;
+                }
             }
+            
+            if (radioButtonWave.Checked)
+            {
+                var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
+                var start = new WaveResolver.Point((int)startPoint?.X, (int)startPoint?.Y + 1);
+                var end = new WaveResolver.Point((int)endPoint?.X, (int)endPoint?.Y - 1);
+                var path = searcher.Search(intArray, start, end);
+                await Task.Delay(1000 / trackBarSpeed.Value);
+                MoveCharacter((int)startPoint?.X, (int)startPoint?.Y + 1);
+                for (int i = 0; i < path.Length; i++)
+                {
+
+                    await Task.Delay(1000 / trackBarSpeed.Value);
+                    MoveCharacter(path[i].X, path[i].Y);
+
+                }
+                MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
+            }
+            else if (radioButton1Hands.Checked)
+            {
+                var path = HandSolver.SolveMaze(intArray, new int[] { (int)startPoint?.X, (int)startPoint?.Y }, new int[] { (int)endPoint?.X, (int)endPoint?.Y - 1 });
+
+                for (int i = 0; i < path.GetLength(0); i++)
+                {
+
+                    await Task.Delay(1000 / trackBarSpeed.Value);
+                    MoveCharacter(path[i, 0], path[i, 1]);
+
+
+                }
+                MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
+            }
+
+
 
 
         }

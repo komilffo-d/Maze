@@ -294,6 +294,7 @@
             // 
             this.startGame.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.startGame.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.startGame.Enabled = false;
             this.startGame.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.startGame.ForeColor = System.Drawing.SystemColors.Window;
             this.startGame.Location = new System.Drawing.Point(520, 458);
