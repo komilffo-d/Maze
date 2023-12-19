@@ -464,6 +464,7 @@ namespace Maze
                     MoveCharacter(path[i].X, path[i].Y);
 
                 }
+                await Task.Delay(1000 / trackBarSpeed.Value);
                 MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
             }
             else if (radioButton1Hands.Checked)
@@ -478,6 +479,7 @@ namespace Maze
 
 
                 }
+                await Task.Delay(1000 / trackBarSpeed.Value);
                 MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
             }
 
