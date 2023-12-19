@@ -50,13 +50,13 @@
             this.pictureMaze = new System.Windows.Forms.PictureBox();
             this.ThemeGroupBox = new System.Windows.Forms.GroupBox();
             this.ModePassGroupBox = new System.Windows.Forms.GroupBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.algorithmGroupBox = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).BeginInit();
             this.ThemeGroupBox.SuspendLayout();
             this.ModePassGroupBox.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.algorithmGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // aboutUs
@@ -238,6 +238,7 @@
             this.trackBarSpeed.Size = new System.Drawing.Size(278, 45);
             this.trackBarSpeed.TabIndex = 17;
             this.trackBarSpeed.Value = 3;
+            this.trackBarSpeed.Visible = false;
             // 
             // label2
             // 
@@ -274,6 +275,7 @@
             this.label4.TabIndex = 20;
             this.label4.Text = "Выбор алгоритма прохождения:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label4.Visible = false;
             // 
             // label5
             // 
@@ -286,6 +288,7 @@
             this.label5.TabIndex = 21;
             this.label5.Text = "Выбор скорости перемещения:";
             this.label5.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label5.Visible = false;
             // 
             // startGame
             // 
@@ -300,6 +303,7 @@
             this.startGame.TabIndex = 22;
             this.startGame.Text = "Начать прохождение";
             this.startGame.UseVisualStyleBackColor = false;
+            this.startGame.Visible = false;
             this.startGame.Click += new System.EventHandler(this.startGame_Click);
             // 
             // pictureBox2
@@ -348,15 +352,16 @@
             this.ModePassGroupBox.TabIndex = 31;
             this.ModePassGroupBox.TabStop = false;
             // 
-            // groupBox1
+            // algorithmGroupBox
             // 
-            this.groupBox1.Controls.Add(this.radioButtonWave);
-            this.groupBox1.Controls.Add(this.radioButton1Hands);
-            this.groupBox1.Location = new System.Drawing.Point(22, 358);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(375, 53);
-            this.groupBox1.TabIndex = 32;
-            this.groupBox1.TabStop = false;
+            this.algorithmGroupBox.Controls.Add(this.radioButtonWave);
+            this.algorithmGroupBox.Controls.Add(this.radioButton1Hands);
+            this.algorithmGroupBox.Location = new System.Drawing.Point(22, 358);
+            this.algorithmGroupBox.Name = "algorithmGroupBox";
+            this.algorithmGroupBox.Size = new System.Drawing.Size(375, 53);
+            this.algorithmGroupBox.TabIndex = 32;
+            this.algorithmGroupBox.TabStop = false;
+            this.algorithmGroupBox.Visible = false;
             // 
             // Gamer
             // 
@@ -364,7 +369,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDark;
             this.ClientSize = new System.Drawing.Size(831, 514);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.algorithmGroupBox);
             this.Controls.Add(this.ModePassGroupBox);
             this.Controls.Add(this.ThemeGroupBox);
             this.Controls.Add(this.pictureBox2);
@@ -395,8 +400,8 @@
             this.ThemeGroupBox.PerformLayout();
             this.ModePassGroupBox.ResumeLayout(false);
             this.ModePassGroupBox.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.algorithmGroupBox.ResumeLayout(false);
+            this.algorithmGroupBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -426,6 +431,6 @@
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.GroupBox ThemeGroupBox;
         private System.Windows.Forms.GroupBox ModePassGroupBox;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox algorithmGroupBox;
     }
 }

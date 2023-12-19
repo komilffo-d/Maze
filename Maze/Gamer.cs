@@ -11,7 +11,7 @@ namespace Maze
 {
     public partial class Gamer : Form
     {
-        private protected enum StepForm : sbyte
+        private protected enum EStepForm : sbyte
         {
             UNLOADMAZE = 1,
             LOADEDMAZE,
@@ -19,12 +19,44 @@ namespace Maze
             ENDPASS
 
         }
-
-        private StepForm stepForm = StepForm.UNLOADMAZE;
-        private bool[,] FillWallsArray;
-        private Tuple<int, int> startPoint = null;
-        private Tuple<int, int> endPoint = null;
         SolidBrush wallBrush = new SolidBrush(Color.Orange);
+        private bool[,] FillWallsArray;
+        private Point? startPoint = null;
+        private Point? endPoint = null;
+        private uint gridWidth;
+        private uint gridHeight;
+        private EStepForm _stepForm = EStepForm.UNLOADMAZE;
+        private protected EStepForm StepForm
+        {
+            get { return _stepForm; }
+            set
+            {
+                _stepForm = value;
+                StepFormPropertyChanged();
+            }
+        }
+        private void StepFormPropertyChanged()
+        {
+            switch (StepForm)
+            {
+                case EStepForm.UNLOADMAZE:
+                    startGame.Visible = false;
+                    break;
+                case EStepForm.LOADEDMAZE:
+                     gridWidth = (uint)FillWallsArray.GetLength(1);
+                     gridHeight = (uint)FillWallsArray.GetLength(0);
+                    startGame.Visible = true;
+                    break;
+                case EStepForm.BEGANPASS:
+                    startGame.Visible = false;
+                    break;
+                case EStepForm.ENDPASS:
+                    startGame.Visible = false;
+                    break;
+
+            }
+        }
+
         public Gamer()
         {
             InitializeComponent();
@@ -65,8 +97,7 @@ namespace Maze
         {
             if (FillWallsArray is null || FillWallsArray?.Length == 0)
                 return;
-            int gridWidth = FillWallsArray.GetLength(1);
-            int gridHeight = FillWallsArray.GetLength(0);
+
             float cellWidth = (float)pictureMaze.Width / gridWidth;
             float cellHeight = (float)pictureMaze.Height / gridHeight;
 
@@ -74,38 +105,43 @@ namespace Maze
             int cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));
 
             if (e.KeyCode == Keys.Left && pictureBox2.Location.X > 0 && cellColumnIndex > 0 && FillWallsArray[cellRowIndex, cellColumnIndex - 1] == false)
-                pictureBox2.Left = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth) * cellWidth - cellWidth + 0.5f);
-            else if (e.KeyCode == Keys.Right && pictureBox2.Right < pictureMaze.Width && cellColumnIndex < FillWallsArray.GetLength(1) && FillWallsArray[cellRowIndex, cellColumnIndex + 1] == false)
-                pictureBox2.Left = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth) * cellWidth + cellWidth + 0.5f);
-            else if (e.KeyCode == Keys.Up && pictureBox2.Location.Y > 0 && cellRowIndex > 0 && FillWallsArray[cellRowIndex - 1, cellColumnIndex] == false)
-                pictureBox2.Top = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight) * cellHeight - cellHeight + 0.5f);
-            else if (e.KeyCode == Keys.Down && pictureBox2.Bottom < pictureMaze.Height && cellRowIndex < FillWallsArray.GetLength(0) && FillWallsArray[cellRowIndex + 1, cellColumnIndex] == false)
-                pictureBox2.Top = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight) * cellHeight + cellHeight + 0.5f);
-
-
-            cellRowIndex = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight));
-            cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));
-            if ((cellRowIndex, cellColumnIndex) == (endPoint.Item1, endPoint.Item2))
             {
-                MessageBox.Show("Лабиринт пройден!");
+                MoveCharacter(cellRowIndex, cellColumnIndex - 1);
+                return;
             }
+               
+            else if (e.KeyCode == Keys.Right && pictureBox2.Right < pictureMaze.Width && cellColumnIndex < FillWallsArray.GetLength(1) && FillWallsArray[cellRowIndex, cellColumnIndex + 1] == false)
+            {
+                MoveCharacter(cellRowIndex, cellColumnIndex + 1);
+                return;
+            }
+                
+            else if (e.KeyCode == Keys.Up && pictureBox2.Location.Y > 0 && cellRowIndex > 0 && FillWallsArray[cellRowIndex - 1, cellColumnIndex] == false)
+            {
+                MoveCharacter(cellRowIndex - 1, cellColumnIndex);
+                return;
+            }
+               
+            else if (e.KeyCode == Keys.Down && pictureBox2.Bottom < pictureMaze.Height && cellRowIndex < FillWallsArray.GetLength(0) && FillWallsArray[cellRowIndex + 1, cellColumnIndex] == false)
+            {
+                MoveCharacter(cellRowIndex + 1, cellColumnIndex);
+                return;
+            }
+
+            if ((cellRowIndex, cellColumnIndex + 1) == (endPoint?.X, endPoint?.Y))
+                MoveCharacter(cellRowIndex, cellColumnIndex + 1);
         }
         private void MoveCharacter(int cellRowIndex, int cellColumnIndex)
         {
 
-            /*            int cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));*/
             if (FillWallsArray is null || FillWallsArray?.Length == 0)
                 return;
-            int gridWidth = FillWallsArray.GetLength(1);
-            int gridHeight = FillWallsArray.GetLength(0);
             float cellWidth = (float)pictureMaze.Width / gridWidth;
             float cellHeight = (float)pictureMaze.Height / gridHeight;
             pictureBox2.Left = Convert.ToInt32(cellColumnIndex * cellWidth + 0.5f);
             pictureBox2.Top = Convert.ToInt32(cellRowIndex * cellHeight + 0.5f);
 
-            cellRowIndex = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight));
-            cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));
-            if ((cellRowIndex, cellColumnIndex) == (endPoint.Item1, endPoint.Item2))
+            if ((cellRowIndex, cellColumnIndex) == (endPoint?.X, endPoint?.Y))
             {
                 MessageBox.Show("Лабиринт пройден!");
             }
@@ -156,12 +192,12 @@ namespace Maze
                 else if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "StartPoint")
                 {
                     string[] location = XMLReader.ReadElementContentAsString().Split(':');
-                    startPoint = new Tuple<int, int>(int.Parse(location[0]), int.Parse(location[1]));
+                    startPoint = new Point(int.Parse(location[0]), int.Parse(location[1]));
                 }
                 else if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "EndPoint")
                 {
                     string[] location = XMLReader.ReadElementContentAsString().Split(':');
-                    endPoint = new Tuple<int, int>(int.Parse(location[0]), int.Parse(location[1]));
+                    endPoint = new Point(int.Parse(location[0]), int.Parse(location[1]));
                 }
             }
 
@@ -171,15 +207,13 @@ namespace Maze
         {
             if (FillWallsArray is null || FillWallsArray?.Length == 0)
                 return;
-            int gridWidth = (int)FillWallsArray.GetLength(1);
-            int gridHeight = (int)FillWallsArray.GetLength(0);
 
             float cellWidth = (float)pictureMaze.Width / gridWidth;
             float cellHeight = (float)pictureMaze.Height / gridHeight;
 
             Pen wallPen = new Pen(Color.Black);
             SolidBrush cellBrush = new SolidBrush(Color.White);
-            SolidBrush startPointBrush = new SolidBrush(Color.Green);
+            SolidBrush startPointBrush = new SolidBrush(Color.GreenYellow);
 
             SolidBrush endPointBrush = new SolidBrush(Color.Red);
             if (pictureMaze.Image == null || pictureMaze.Image.Width != pictureMaze.Width || pictureMaze.Image.Height != pictureMaze.Height)
@@ -217,15 +251,15 @@ namespace Maze
                 }
                 if (startPoint != null)
                 {
-                    int x = (int)(startPoint.Item2 * cellWidth);
-                    int y = (int)(startPoint.Item1 * cellHeight);
+                    int x = (int)(startPoint?.Y * cellWidth);
+                    int y = (int)(startPoint?.X * cellHeight);
                     g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
                 }
 
                 if (endPoint != null)
                 {
-                    int x = (int)(endPoint.Item2 * cellWidth);
-                    int y = (int)(endPoint.Item1 * cellHeight);
+                    int x = (int)(endPoint?.Y * cellWidth);
+                    int y = (int)(endPoint?.X * cellHeight);
                     g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
                 }
             }
@@ -246,10 +280,9 @@ namespace Maze
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 FillWallsArray = ReadMatrixFromXml(openFileDialog.FileName);
+                StepForm = EStepForm.LOADEDMAZE;
                 DrawMaze();
-                stepForm = StepForm.LOADEDMAZE;
                 MessageBox.Show("Лабиринт успешно загружен из файла!");
-
             }
         }
 
@@ -273,6 +306,13 @@ namespace Maze
             {
                 rdb.MouseUp += ThemeRadioButtons_CheckedChanged;
             }
+
+            Control.ControlCollection modes = ModePassGroupBox.Controls;
+
+            foreach (RadioButton rdb in modes)
+            {
+                rdb.MouseUp += ModeRadioButtons_CheckedChanged;
+            }
         }
         private void ThemeRadioButtons_CheckedChanged(object sender, EventArgs e)
         {
@@ -284,30 +324,50 @@ namespace Maze
                 {
                     case "radioButtonHalloween":
                         wallBrush = new SolidBrush(Color.Orange);
+                        DrawMaze();
                         break;
                     case "radioButtonForest":
                         wallBrush = new SolidBrush(Color.Green);
+                        DrawMaze();
                         break;
                     case "radioButtonNewYear":
                         wallBrush = new SolidBrush(Color.Blue);
+                        DrawMaze();
                         break;
                     case "radioButtonSea":
                         wallBrush = new SolidBrush(Color.Aqua);
+                        DrawMaze();
+                        break;
+                }
+            }
+        }
+        private void ModeRadioButtons_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+
+            if (radioButton.Checked == true)
+            {
+                switch (radioButton.Name)
+                {
+                    case "radioButtonHands":
+
+                        break;
+                    case "radioButtonAuto":
+                        label4.Visible = true;
+                        algorithmGroupBox.Visible = true;
                         break;
                 }
             }
         }
         private async void startGame_Click(object sender, EventArgs e)
         {
-            switch (stepForm)
+            switch (StepForm)
             {
-                case StepForm.UNLOADMAZE:
+                case EStepForm.UNLOADMAZE:
                     break;
-                case StepForm.LOADEDMAZE:
+                case EStepForm.LOADEDMAZE:
                     if (FillWallsArray is null || FillWallsArray?.Length == 0)
                         return;
-                    int gridWidth = FillWallsArray.GetLength(1);
-                    int gridHeight = FillWallsArray.GetLength(0);
                     float cellWidth = (float)pictureMaze.Width / gridWidth;
                     float cellHeight = (float)pictureMaze.Height / gridHeight;
                     Image image = Image.FromFile(@"Resources\mario.png");
@@ -319,17 +379,17 @@ namespace Maze
                     pictureBox2.Size = Size.Round(new SizeF(Convert.ToInt32(cellWidth), Convert.ToInt32(cellHeight)));
                     pictureMaze.Controls.Add(pictureBox2);
                     pictureBox2.BackColor = Color.Transparent;
-                    int X = Convert.ToInt32(startPoint.Item2 * cellWidth + 0.5f);
-                    int Y = Convert.ToInt32((startPoint.Item1) * cellHeight + 0.5f);
+                    int X = Convert.ToInt32(startPoint?.Y * cellWidth + 0.5f);
+                    int Y = Convert.ToInt32((startPoint?.X) * cellHeight + 0.5f);
                     pictureBox2.Location = new Point(X, Y);
                     pictureBox2.Enabled = true;
                     pictureBox2.Visible = true;
 
                     pictureMaze.Invalidate();
                     pictureBox2.Invalidate();
-                    stepForm = StepForm.BEGANPASS;
+                    StepForm = EStepForm.BEGANPASS;
                     break;
-                case StepForm.BEGANPASS:
+                case EStepForm.BEGANPASS:
                     int rows = FillWallsArray.GetLength(0);
                     int columns = FillWallsArray.GetLength(1);
 
@@ -344,9 +404,9 @@ namespace Maze
                     }
                     /*                    var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
                                         var start = new WaveResolver.Point(startPoint.Item1,startPoint.Item2);
-                                        var end = new WaveResolver.Point(endPoint.Item1, endPoint.Item2);*/
+                                        var end = new WaveResolver.Point(endPoint?.X, endPoint?.Y);*/
                     /*                    var path = searcher.Search(intArray, start, end);*/
-                    var path = HandSolver.SolveMaze(intArray, new int[] { startPoint.Item1, startPoint.Item2 }, new int[] { endPoint.Item1, endPoint.Item2 });
+                    var path = HandSolver.SolveMaze(intArray, new int[] { (int)startPoint?.X,(int) startPoint?.Y }, new int[] { (int)endPoint?.X, (int)endPoint?.Y - 1 });
                     for (int i = 0; i < path.GetLength(0); i++)
                     {
 
@@ -355,23 +415,16 @@ namespace Maze
 
 
                     }
-
+                    MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
                     break;
-                case StepForm.ENDPASS:
+                case EStepForm.ENDPASS:
+
                     break;
                 default:
                     break;
             }
 
 
-        }
-        public static void Count(object obj)
-        {
-            int x = (int)obj;
-            for (int i = 1; i < 9; i++, x++)
-            {
-                Console.WriteLine($"{x * i}");
-            }
         }
 
     }

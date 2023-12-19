@@ -308,6 +308,7 @@
             this.radioButtonAdminAuto.TabStop = true;
             this.radioButtonAdminAuto.Text = "Автоматический режим";
             this.radioButtonAdminAuto.UseVisualStyleBackColor = true;
+            this.radioButtonAdminAuto.CheckedChanged += new System.EventHandler(this.ModeRadioButtons_CheckedChanged);
             // 
             // radioButtonAdminHands
             // 
@@ -322,6 +323,7 @@
             this.radioButtonAdminHands.TabIndex = 29;
             this.radioButtonAdminHands.Text = "Ручной режим";
             this.radioButtonAdminHands.UseVisualStyleBackColor = true;
+            this.radioButtonAdminHands.CheckedChanged += new System.EventHandler(this.ModeRadioButtons_CheckedChanged);
             // 
             // altGroupBox
             // 
@@ -391,7 +393,6 @@
             this.MinimizeBox = false;
             this.Name = "Admin";
             this.Text = "Admin";
-            this.Load += new System.EventHandler(this.Admin_Load);
             ((System.ComponentModel.ISupportInitialize)(this.widthUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.heightUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).EndInit();

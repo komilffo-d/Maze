@@ -11,22 +11,85 @@ namespace Maze
 {
     public partial class Admin : Form
     {
-        private protected enum StepForm : sbyte
+        private protected enum EStepForm : sbyte
         {
             NOTCREATETEMPLATE = 1,
             CREATEDTEMPLATE,
+            BEGINSETPOINTS,
             SETPOINTENTRY,
-            SETPOINTEXIT,
+            ENDSETPOINTS,
             GENERATEDMAZE,
             EXPORTEDMAZE
 
         }
-        private StepForm stepForm = StepForm.NOTCREATETEMPLATE;
+        /*        private StepForm stepForm = StepForm.NOTCREATETEMPLATE;*/
         private bool[,] FillWallsArray;
         private Point? startPoint = null;
         private Point? endPoint = null;
         private uint gridWidth;
         private uint gridHeight;
+
+        private EStepForm _stepForm= EStepForm.NOTCREATETEMPLATE;
+
+        private protected EStepForm StepForm
+        {
+            get { return _stepForm; }
+            set
+            {
+                _stepForm = value;
+                StepFormPropertyChanged();
+            }
+        }
+        private void StepFormPropertyChanged()
+        {
+            switch (StepForm)
+            {
+                case EStepForm.NOTCREATETEMPLATE:
+                    Generate.Visible = false;
+                    EntryExit.Enabled = false;
+                    EntryExit.Visible = false;
+                    break;
+                case EStepForm.CREATEDTEMPLATE:
+                    if (radioButtonAdminAuto.Checked)
+                        Generate.Visible = true;
+                    else
+                        Generate.Visible = false;
+                    startPoint = null;
+                    endPoint = null;
+                    FillWallsArray = null;
+                    gridWidth = (uint)widthUpDown.Value;
+                    gridHeight = (uint)heightUpDown.Value;
+                    DrawMaze();
+                    break;
+                case EStepForm.BEGINSETPOINTS:
+                    Generate.Visible = false;
+                    EntryExit.Enabled = false;
+                    EntryExit.Visible = false;
+                    break;
+                case EStepForm.SETPOINTENTRY:
+                    Generate.Visible = false;
+                    EntryExit.Enabled = false;
+                    EntryExit.Visible = false;
+                    break;
+                case EStepForm.ENDSETPOINTS:
+                    Generate.Visible = true;
+                    EntryExit.Enabled = false;
+                    EntryExit.Visible = false;
+                    break;
+                case EStepForm.GENERATEDMAZE:
+                     if (radioButtonAdminAuto.Checked)
+                    {
+                        (startPoint, endPoint) = RandomStartEndPoints(FillWallsArray);
+                        DrawMaze();
+                    }
+                        
+                    
+                    break;
+                case EStepForm.EXPORTEDMAZE:
+                    break;
+
+            }
+        }
         public Admin()
         {
             InitializeComponent();
@@ -35,10 +98,9 @@ namespace Maze
 
         private void createPattern_Click(object sender, EventArgs e)
         {
-            gridWidth = (uint)widthUpDown.Value;
-            gridHeight = (uint)heightUpDown.Value;
+
             DrawMaze();
-            stepForm = StepForm.CREATEDTEMPLATE;
+            StepForm = EStepForm.CREATEDTEMPLATE;
         }
         private bool[,] List2DToArray(List<List<bool>> listBoolean)
         {
@@ -60,7 +122,7 @@ namespace Maze
         }
         private void Generate_Click(object sender, EventArgs e)
         {
-            
+
             if (radioButtonEuler.Checked)
             {
                 bool[,] maze = List2DToArray(MazeGeneratorEuler.GenerateMaze(gridWidth / 2, gridHeight / 2));
@@ -69,15 +131,14 @@ namespace Maze
             else if (radioButtonAldousBroder.Checked)
             {
                 bool[,] maze = List2DToArray(new MazeGeneratorAldousBroder().Generate((int)gridWidth, (int)gridHeight));
-                (startPoint, endPoint) = FindFreeSpaces(maze);
                 DrawMaze(maze);
 
             }
 
-            stepForm = StepForm.GENERATEDMAZE;
+            StepForm = EStepForm.GENERATEDMAZE;
 
         }
-        private Tuple<Point, Point> FindFreeSpaces(bool[,] maze)
+        private Tuple<Point, Point> RandomStartEndPoints(bool[,] maze)
         {
 
             int randomRowStart, randomRowEnd;
@@ -88,15 +149,15 @@ namespace Maze
                 randomRowStart = random.Next(0, maze.GetLength(0));
                 startPoint = new Point(randomRowStart, 0);
 
-                randomRowEnd = random.Next(0, maze.GetLength(1));
-                endPoint = new Point(randomRowEnd, (int)gridHeight - 1);
+                randomRowEnd = random.Next(0, maze.GetLength(0));
+                endPoint = new Point(randomRowEnd, (int)gridWidth - 1);
 
-            } while (randomRowStart == 0 ||
-                    randomRowStart == gridWidth - 1 ||
-                    randomRowEnd == 0 ||
-                    randomRowEnd == gridHeight - 1 ||
-                    maze[randomRowStart,1]==true ||
-                    maze[randomRowEnd, (int)gridHeight - 2] == true);
+            } while (randomRowStart <= 0 ||
+                    randomRowStart >= gridWidth - 1 ||
+                    randomRowEnd <= 0 ||
+                    randomRowEnd >= gridWidth - 1 ||
+                    maze[randomRowStart, 1] == true ||
+                    maze[randomRowEnd, (int)gridWidth - 2] == true);
 
             return new Tuple<Point, Point>(startPoint, endPoint);
         }
@@ -108,9 +169,7 @@ namespace Maze
             Pen wallPen = new Pen(Color.Black);
             SolidBrush cellBrush = new SolidBrush(Color.White);
             SolidBrush wallBrush = new SolidBrush(Color.Black);
-
-            SolidBrush startPointBrush = new SolidBrush(Color.Green);
-
+            SolidBrush startPointBrush = new SolidBrush(Color.GreenYellow);
             SolidBrush endPointBrush = new SolidBrush(Color.Red);
 
             FillWallsArray = mazeMatrix is null ? FillWallsArray is null ? null : FillWallsArray : mazeMatrix;
@@ -234,19 +293,15 @@ namespace Maze
         }
         private void saveToFile_Click(object sender, EventArgs e)
         {
-            switch (stepForm)
+            switch (StepForm)
             {
-                case StepForm.NOTCREATETEMPLATE:
+                case EStepForm.NOTCREATETEMPLATE:
                     MessageBox.Show("Создайте шаблон!");
                     break;
-                case StepForm.CREATEDTEMPLATE:
+                case EStepForm.CREATEDTEMPLATE:
                     MessageBox.Show("Расставьте точки входа и выхода!");
                     break;
-                /*                case StepForm.SETPOINTENTRYEXIT:
-                                    MessageBox.Show("Сгенерируйте матрицу!!");
-
-                                    break;*/
-                case StepForm.SETPOINTEXIT:
+                case EStepForm.GENERATEDMAZE:
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
                     saveFileDialog.Filter = "XML файлы (*.xml)|*.xml";
                     saveFileDialog.InitialDirectory = KnownFolders.Downloads.Path;
@@ -259,11 +314,11 @@ namespace Maze
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         SaveMatrixToXml(saveFileDialog.FileName);
-                        stepForm = StepForm.EXPORTEDMAZE;
+                        StepForm = EStepForm.EXPORTEDMAZE;
                     }
                     break;
 
-                case StepForm.EXPORTEDMAZE:
+                case EStepForm.EXPORTEDMAZE:
                     break;
             }
 
@@ -271,17 +326,7 @@ namespace Maze
 
         }
 
-        private void Admin_Load(object sender, EventArgs e)
-        {
 
-            Control.ControlCollection modes = modeGroupBox.Controls;
-
-            foreach (RadioButton rdb in modes)
-            {
-                rdb.MouseUp += ModeRadioButtons_CheckedChanged;
-            }
-
-        }
         private void ModeRadioButtons_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
@@ -295,11 +340,16 @@ namespace Maze
                         EntryExit.Visible = false;
                         break;
                     case "radioButtonAdminHands":
+
                         EntryExit.Enabled = true;
                         EntryExit.Visible = true;
                         break;
                 }
             }
+            if (gridWidth > 0 && gridHeight > 0)
+                StepForm = EStepForm.CREATEDTEMPLATE;
+            else
+                StepForm = EStepForm.NOTCREATETEMPLATE;
             startPoint = null;
             endPoint = null;
             DrawMaze();
@@ -312,31 +362,42 @@ namespace Maze
             MouseEventArgs me = (MouseEventArgs)e;
             int cellRowIndex = Convert.ToInt32(Math.Floor(me.Y / cellHeight));
             int cellColumnIndex = Convert.ToInt32(Math.Floor(me.X / cellWidth));
-            switch (stepForm)
-            {
-                case StepForm.NOTCREATETEMPLATE:
-                    MessageBox.Show("Создайте шаблон!");
-                    break;
-                case StepForm.GENERATEDMAZE:
 
-                    if ((cellRowIndex == 0 || cellColumnIndex == 0 || cellRowIndex == gridHeight - 1 || cellColumnIndex == gridWidth - 1) && FillWallsArray[cellRowIndex, cellColumnIndex] == true)
+
+            switch (StepForm)
+            {
+
+                case EStepForm.BEGINSETPOINTS:
+
+                    if (cellRowIndex > 0 && cellRowIndex < gridHeight - 1 && cellColumnIndex == 0)
                     {
                         startPoint = new Point(cellRowIndex, cellColumnIndex);
                         DrawMaze(FillWallsArray);
-                        stepForm = StepForm.SETPOINTENTRY;
+                        StepForm = EStepForm.SETPOINTENTRY;
+                        MessageBox.Show("Входная точка установлена.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Нужна точка по левому боковому периметру без угла.");
                     }
 
                     break;
-                case StepForm.SETPOINTENTRY:
-                    if ((cellRowIndex == 0 || cellColumnIndex == 0 || cellRowIndex == gridHeight - 1 || cellColumnIndex == gridWidth - 1) && FillWallsArray[cellRowIndex, cellColumnIndex] == true)
+                case EStepForm.SETPOINTENTRY:
+                    if (cellRowIndex > 0 && cellRowIndex < gridHeight - 1 && cellColumnIndex == gridWidth - 1)
                     {
                         endPoint = new Point(cellRowIndex, cellColumnIndex);
                         DrawMaze(FillWallsArray);
-                        stepForm = StepForm.SETPOINTEXIT;
+                        StepForm = EStepForm.ENDSETPOINTS;
+
+                        MessageBox.Show("Выходная точка установлена.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Нужна точка по правому боковому периметру без угла.");
                     }
 
                     break;
-                case StepForm.SETPOINTEXIT:
+                case EStepForm.ENDSETPOINTS:
                     MessageBox.Show("Точки входа и выхода расставлены!");
                     break;
 
@@ -348,6 +409,8 @@ namespace Maze
         private void EntryExit_Click(object sender, EventArgs e)
         {
 
+            MessageBox.Show("Установите точку входа и выхода по боковому периметру лабиринта.");
+            StepForm = EStepForm.BEGINSETPOINTS;
         }
     }
 }
