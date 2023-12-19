@@ -3,7 +3,9 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using RadioButton = System.Windows.Forms.RadioButton;
@@ -91,7 +93,26 @@ namespace Maze
                 MessageBox.Show("Лабиринт пройден!");
             }
         }
+        private void MoveCharacter(int cellRowIndex,int cellColumnIndex)
+        {
 
+/*            int cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));*/
+            if (FillWallsArray is null || FillWallsArray?.Length == 0)
+                return;
+            int gridWidth = FillWallsArray.GetLength(1);
+            int gridHeight = FillWallsArray.GetLength(0);
+            float cellWidth = (float)pictureMaze.Width / gridWidth;
+            float cellHeight = (float)pictureMaze.Height / gridHeight;
+            pictureBox2.Left = Convert.ToInt32(cellColumnIndex * cellWidth + 0.5f);
+            pictureBox2.Top = Convert.ToInt32(cellRowIndex * cellHeight + 0.5f);
+
+            cellRowIndex = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight));
+            cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));
+            if ((cellRowIndex, cellColumnIndex) == (endPoint.Item1, endPoint.Item2))
+            {
+                MessageBox.Show("Лабиринт пройден!");
+            }
+        }
 
         private bool[,] ReadMatrixFromXml(string filePath)
         {
@@ -279,7 +300,7 @@ namespace Maze
                 }
             }
         }
-        private void startGame_Click(object sender, EventArgs e)
+        private async void startGame_Click(object sender, EventArgs e)
         {
             switch (stepForm)
             {
@@ -312,6 +333,30 @@ namespace Maze
                     stepForm = StepForm.BEGANPASS;
                     break;
                 case StepForm.BEGANPASS:
+                    int rows = FillWallsArray.GetLength(0);
+                    int columns = FillWallsArray.GetLength(1);
+
+                    int[,] intArray = new int[rows, columns];
+
+                    for (int i = 0; i < rows; i++)
+                    {
+                        for (int j = 0; j < columns; j++)
+                        {
+                            intArray[i, j] = FillWallsArray[i, j] ? 1 : 0;
+                        }
+                    }
+                    var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
+                    var start = new WaveResolver.Point(startPoint.Item1,startPoint.Item2);
+                    var end = new WaveResolver.Point(endPoint.Item1, endPoint.Item2);
+                    var path = searcher.Search(intArray, start, end);
+                    foreach (var item in path)
+                    {
+                        
+                        
+
+                        await Task.Delay(1000);
+                        MoveCharacter(item.X, item.Y);
+                    }
                     break;
                 case StepForm.ENDPASS:
                     break;
@@ -321,6 +366,16 @@ namespace Maze
 
 
         }
+        public static void Count(object obj)
+        {
+            int x = (int)obj;
+            for (int i = 1; i < 9; i++, x++)
+            {
+                Console.WriteLine($"{x * i}");
+            }
+        }
+
     }
+
 }
 

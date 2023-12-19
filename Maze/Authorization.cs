@@ -37,7 +37,7 @@ namespace Maze
             {
                 if (true)
                 {
-                    if (true)
+                    if (false)
                     {
                         // Пользователь является администратором
                         MessageBox.Show("Вы успешно авторизовались.");

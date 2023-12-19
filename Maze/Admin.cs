@@ -62,17 +62,12 @@ namespace Maze
             {
                 bool[,] maze = List2DToArray(MazeGeneratorEuler.GenerateMaze(gridWidth / 2, gridHeight / 2));
                 DrawMaze(maze);
-                /*                var list = MazeGenerator.MazeGenerator.Generate((uint)gridWidth/2, (uint)gridHeight/2);
-                                MazeGenerator.MazeGenerator.Print(List2DToArray(list));*/
             }
             else if (radioButtonAldousBroder.Checked)
             {
-
-                bool[,] maze= MazeGeneratorAldousBroder.DisplayMaze(MazeGeneratorAldousBroder.Main((int)gridWidth/2, (int)gridHeight/2,0));
+                bool[,] maze = List2DToArray(new MazeGeneratorAldousBroder().Generate((int)gridWidth, (int)gridHeight));
                 DrawMaze(maze);
-                /*                MazeGeneratorAldousBroder mazeGeneratorAldousBroder = new MazeGeneratorAldousBroder(gridWidth, gridHeight);
-                                mazeGeneratorAldousBroder.GenerateMaze();
-                                DrawMaze(mazeGeneratorAldousBroder);*/
+
             }
 
             stepForm = StepForm.GENERATEDMAZE;

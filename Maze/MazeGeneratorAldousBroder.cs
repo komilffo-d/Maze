@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Maze
 {
@@ -72,127 +73,190 @@ namespace Maze
     */
 
 
-    public static class MazeGeneratorAldousBroder
+    public class MazeGeneratorAldousBroder
     {
-        public static int N = 1, S = 2, E = 4, W = 8;
-        static Dictionary<int, int> DX = new Dictionary<int, int> { { E, 1 }, { W, -1 }, { N, 0 }, { S, 0 } };
-        static Dictionary<int, int> DY = new Dictionary<int, int> { { E, 0 }, { W, 0 }, { N, -1 }, { S, 1 } };
-        static Dictionary<int, int> OPPOSITE = new Dictionary<int, int> { { E, W }, { W, E }, { N, S }, { S, N } };
-        public static int[][] Main(int widthOut = 1, int heightOut = 2, int seedOut = 0)
-        {
 
-            int width = widthOut > 0 ? widthOut : 10;
-            int height = heightOut > 1 ? heightOut : width;
-            int seed = seedOut > 2 ? seedOut : new Random().Next();
-            Random rand = new Random(seed);
-            int[][] grid = new int[height][];
-            for (int i = 0; i < height; i++)
+
+        private List<List<bool>> area;
+        private bool hole = false;
+        private bool wall = true;
+
+        public List<List<bool>> Generate(int width, int height)
+        {
+            area = new List<List<bool>>(new List<bool>[height]);
+            for (int i = 0; i < area.Count; i++)
             {
-                grid[i] = new int[width];
+                area[i] = new List<bool>(Enumerable.Repeat(true,width));
             }
 
-            Console.Clear();
-            int x = rand.Next(width);
-            int y = rand.Next(height);
-            int remaining = width * height - 1;
-            while (remaining > 0)
+            int y = 0;
+            int x = 0;
+
+            int total_cells = (area.Count / 2) * (area[0].Count / 2);
+
+            Random random_generator = new Random();
+
+            int random_start_y = random_generator.Next(1, area.Count - 2);
+            int random_start_x = random_generator.Next(1, area[0].Count - 2);
+
+            int[] directions = { 0, 1, 2, 3 }; // north, south, west, east
+
+            y = (random_start_y / 2 * 2 + 1);
+            x = (random_start_x / 2 * 2 + 1);
+            area[y][x] = hole;
+            total_cells--;
+
+            while (total_cells > 0)
             {
-                List<int> directions = new List<int> { N, S, E, W };
-                directions.Sort((a, b) => rand.Next(2) * 2 - 1);
-                foreach (int dir in directions)
+                int next_cell = directions[random_generator.Next(0, 4)];
+                if (next_cell == 0) // north
                 {
-                    int nx = x + DX[dir];
-                    int ny = y + DY[dir];
-                    if (nx >= 0 && ny >= 0 && nx < width && ny < height)
+                    if (y >= 3)
                     {
-                        if (grid[ny][nx] == 0)
+                        y -= 2;
+                        if (wall == area[y][x])
                         {
-                            grid[y][x] |= dir;
-                            grid[ny][nx] |= OPPOSITE[dir];
-                            remaining--;
+                            total_cells--;
+                            area[y][x] = hole;
+                            area[y + 1][x] = hole;
                         }
-                        x = nx;
-                        y = ny;
-                        break;
+                    }
+                }
+                else if (next_cell == 1) // south
+                {
+                    if ((y + 2) <= area.Count - 2)
+                    {
+                        y += 2;
+                        if (wall == area[y][x])
+                        {
+                            total_cells--;
+                            area[y][x] = hole;
+                            area[y - 1][x] = hole;
+                        }
+                    }
+                }
+                else if (next_cell == 2) // west
+                {
+                    if (x >= 3)
+                    {
+                        x -= 2;
+                        if (wall == area[y][x])
+                        {
+                            total_cells--;
+                            area[y][x] = hole;
+                            area[y][x + 1] = hole;
+                        }
+                    }
+                }
+                else if (next_cell == 3) // east
+                {
+                    if ((x + 2) <= area[0].Count - 2)
+                    {
+                        x += 2;
+                        if (wall == area[y][x])
+                        {
+                            total_cells--;
+                            area[y][x] = hole;
+                            area[y][x - 1] = hole;
+                        }
                     }
                 }
             }
-            DisplayMaze(grid);
-
-            return grid;
+            return area;
         }
-        static public bool[,] DisplayMaze(int[][] grid, int cx = -1, int cy = -1)
-        {
 
-            bool[,] array2D = new bool[grid.Length * 2 + 1, grid.Max(arrIn => arrIn.Length) * 2 + 1];
-            Console.SetCursorPosition(0, 0);
-            Console.WriteLine(" " + new string('_', grid[0].Length * 2 - 1));
 
-            for (int y = 0; y < grid.Length; y++)
-            {
-                int X = 0;
-                int Y = 0;
-                Console.Write("|");
-                array2D[y, X] = true;
-                X++;
-                for (int x = 0; x < grid[y].Length; x++)
+
+
+        /*        public static int N = 1, S = 2, E = 4, W = 8;
+                static Dictionary<int, int> DX = new Dictionary<int, int> { { E, 1 }, { W, -1 }, { N, 0 }, { S, 0 } };
+                static Dictionary<int, int> DY = new Dictionary<int, int> { { E, 0 }, { W, 0 }, { N, -1 }, { S, 1 } };
+                static Dictionary<int, int> OPPOSITE = new Dictionary<int, int> { { E, W }, { W, E }, { N, S }, { S, N } };
+                public static int[][] Main(int widthOut = 1, int heightOut = 2, int seedOut = 0)
                 {
-                    if ((grid[y][x] & S) != 0)
+
+                    int width = widthOut > 0 ? widthOut : 10;
+                    int height = heightOut > 1? heightOut : width;
+                    int seed = seedOut > 2 ? seedOut : new Random().Next();
+                    Random rand = new Random(seed);
+                    int[][] grid = new int[height][];
+                    for (int i = 0; i < height; i++)
                     {
-
-                        array2D[y, X] = false;
-                        X++;
-
-
+                        grid[i] = new int[width];
                     }
-                    else
+
+                    Console.Clear();
+                    int x = rand.Next(width);
+                    int y = rand.Next(height);
+                    int remaining = width * height - 1;
+                    while (remaining > 0)
                     {
-                        array2D[y + 1, X] = true;
-                        array2D[y + 1, X-1] = true;
-                        array2D[y + 1, X + 1] = true;
-                        X++;
-                    }
-                    /*                    array2D[y+1, X] = (grid[y][x] & S) != 0 ? false : true;*/
-/*                    X++;*/
-                    Console.Write((grid[y][x] & S) != 0 ? " " : "_");
-                    Console.ResetColor();
-                    if ((grid[y][x] & E) != 0)
-                    {
-                        if (((grid[y][x] | grid[y][x + 1]) & S) != 0)
+                        List<int> directions = new List<int> { N, S, E, W };
+                        directions.Sort((a, b) => rand.Next(2) * 2 - 1);
+                        foreach (int dir in directions)
                         {
-                            array2D[y, X] = false;
-                            X++;
+                            int nx = x + DX[dir];
+                            int ny = y + DY[dir];
+                            if (nx >= 0 && ny >= 0 && nx < width && ny < height)
+                            {
+                                if (grid[ny][nx] == 0)
+                                {
+                                    grid[y][x] |= dir;
+                                    grid[ny][nx] |= OPPOSITE[dir];
+                                    remaining--;
+                                }
+                                x = nx;
+                                y = ny;
+                                break;
+                            }
                         }
-                        else
-                        {
-                            array2D[y + 1, X] = true;
-                            array2D[y + 1, X - 1] = true;
-                            array2D[y + 1, X + 1] = true;
-                            X++;
-                        }
-
-                        Console.Write(((grid[y][x] | grid[y][x + 1]) & S) != 0 ? " " : "_");
                     }
-                    else
+                    DisplayMaze(grid);
+
+                    return grid;
+                }
+                static public bool[,] DisplayMaze(int[][] grid, int cx = -1, int cy = -1)
+                {
+                    int countCol = grid.Max(arrIn => arrIn.Length);
+                    char[][] array2D = new char[grid.Length][];
+                    Console.SetCursorPosition(0, 0);
+                    Console.WriteLine(" " + new string('_', countCol * 2 - 1));
+
+                    array2D[0] = Enumerable.Repeat('_', countCol).ToArray();
+                    for (int y = 0; y < grid.Length; y++)
                     {
+
                         Console.Write("|");
-                        array2D[y, X] = true;
-                        X++;
+                        for (int x = 0; x < grid[y].Length; x++)
+                        {
+                            if (cx == x && cy == y)
+                            {
+                                Console.BackgroundColor = ConsoleColor.Yellow;
+                            }
+                            else if (grid[y][x] == 0)
+                            {
+                                Console.BackgroundColor = ConsoleColor.White;
+                            }
+
+                            Console.Write((grid[y][x] & S) != 0 ? " " : "_");
+                            Console.ResetColor();
+                            if ((grid[y][x] & E) != 0)
+                            {
+
+                                Console.Write(((grid[y][x] | grid[y][x + 1]) & S) != 0 ? " " : "_");
+                            }
+                            else
+                            {
+                                Console.Write("|");
+                            }
+                        }
+                        Console.WriteLine();
                     }
-
-                }
-                array2D[y, X - 1] = true;
-                Console.WriteLine();
-            }
-            for (int y = 0; y < array2D.GetLength(0); y++)
-                if (y == 0 || y == array2D.GetLength(0) - 1)
-                    for (int x = 0; x < array2D.GetLength(1); x++)
-                        array2D[y, x] = true;
-
-            return array2D;
-        }
+                    return array2D;
+                }*/
     }
 
-
-
 }
+
+
+
