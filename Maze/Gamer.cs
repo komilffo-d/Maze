@@ -2,9 +2,6 @@
 using System;
 using System.Drawing;
 using System.IO;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -86,17 +83,17 @@ namespace Maze
                 pictureBox2.Top = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight) * cellHeight + cellHeight + 0.5f);
 
 
-             cellRowIndex = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight));
-             cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));
+            cellRowIndex = Convert.ToInt32(Math.Floor(pictureBox2.Top / cellHeight));
+            cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));
             if ((cellRowIndex, cellColumnIndex) == (endPoint.Item1, endPoint.Item2))
             {
                 MessageBox.Show("Лабиринт пройден!");
             }
         }
-        private void MoveCharacter(int cellRowIndex,int cellColumnIndex)
+        private void MoveCharacter(int cellRowIndex, int cellColumnIndex)
         {
 
-/*            int cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));*/
+            /*            int cellColumnIndex = Convert.ToInt32(Math.Floor(pictureBox2.Left / cellWidth));*/
             if (FillWallsArray is null || FillWallsArray?.Length == 0)
                 return;
             int gridWidth = FillWallsArray.GetLength(1);
@@ -211,7 +208,7 @@ namespace Maze
                         g.FillRectangle(cellBrush, x, y, cellWidth, cellHeight);
                         g.DrawRectangle(wallPen, x, y, nextX - x, nextY - y);
 
-                        if (FillWallsArray != null  && FillWallsArray[row, col] == true)
+                        if (FillWallsArray != null && FillWallsArray[row, col] == true)
                         {
                             g.FillRectangle(wallBrush, x, y, cellWidth, cellHeight);
                         }
@@ -322,8 +319,8 @@ namespace Maze
                     pictureBox2.Size = Size.Round(new SizeF(Convert.ToInt32(cellWidth), Convert.ToInt32(cellHeight)));
                     pictureMaze.Controls.Add(pictureBox2);
                     pictureBox2.BackColor = Color.Transparent;
-                    int X=Convert.ToInt32(startPoint.Item2 * cellWidth + 0.5f);
-                    int Y= Convert.ToInt32((startPoint.Item1) * cellHeight + 0.5f);
+                    int X = Convert.ToInt32(startPoint.Item2 * cellWidth + 0.5f);
+                    int Y = Convert.ToInt32((startPoint.Item1) * cellHeight + 0.5f);
                     pictureBox2.Location = new Point(X, Y);
                     pictureBox2.Enabled = true;
                     pictureBox2.Visible = true;
@@ -345,18 +342,20 @@ namespace Maze
                             intArray[i, j] = FillWallsArray[i, j] ? 1 : 0;
                         }
                     }
-                    var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
-                    var start = new WaveResolver.Point(startPoint.Item1,startPoint.Item2);
-                    var end = new WaveResolver.Point(endPoint.Item1, endPoint.Item2);
-                    var path = searcher.Search(intArray, start, end);
-                    foreach (var item in path)
+                    /*                    var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
+                                        var start = new WaveResolver.Point(startPoint.Item1,startPoint.Item2);
+                                        var end = new WaveResolver.Point(endPoint.Item1, endPoint.Item2);*/
+                    /*                    var path = searcher.Search(intArray, start, end);*/
+                    var path = HandSolver.SolveMaze(intArray, new int[] { startPoint.Item1, startPoint.Item2 }, new int[] { endPoint.Item1, endPoint.Item2 });
+                    for (int i = 0; i < path.GetLength(0); i++)
                     {
-                        
-                        
 
-                        await Task.Delay(1000);
-                        MoveCharacter(item.X, item.Y);
+                        await Task.Delay(1000 / trackBarSpeed.Value);
+                        MoveCharacter(path[i, 0], path[i, 1]);
+
+
                     }
+
                     break;
                 case StepForm.ENDPASS:
                     break;

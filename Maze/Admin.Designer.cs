@@ -39,8 +39,8 @@
             this.saveToFile = new System.Windows.Forms.Button();
             this.EntryExit = new System.Windows.Forms.Button();
             this.Generate = new System.Windows.Forms.Button();
-            this.width = new System.Windows.Forms.NumericUpDown();
-            this.height = new System.Windows.Forms.NumericUpDown();
+            this.widthUpDown = new System.Windows.Forms.NumericUpDown();
+            this.heightUpDown = new System.Windows.Forms.NumericUpDown();
             this.pictureMaze = new System.Windows.Forms.PictureBox();
             this.modeGroupBox = new System.Windows.Forms.GroupBox();
             this.radioButtonAdminAuto = new System.Windows.Forms.RadioButton();
@@ -48,8 +48,8 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.radioButtonAldousBroder = new System.Windows.Forms.RadioButton();
             this.radioButtonEuler = new System.Windows.Forms.RadioButton();
-            ((System.ComponentModel.ISupportInitialize)(this.width)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.height)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.widthUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.heightUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).BeginInit();
             this.modeGroupBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -204,61 +204,62 @@
             this.Generate.TabIndex = 24;
             this.Generate.Text = "Сгенерировать лабиринт";
             this.Generate.UseVisualStyleBackColor = false;
+            this.Generate.Visible = false;
             this.Generate.Click += new System.EventHandler(this.Generate_Click);
             // 
-            // width
+            // widthUpDown
             // 
-            this.width.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.width.Increment = new decimal(new int[] {
+            this.widthUpDown.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.widthUpDown.Increment = new decimal(new int[] {
             2,
             0,
             0,
             0});
-            this.width.Location = new System.Drawing.Point(196, 101);
-            this.width.Margin = new System.Windows.Forms.Padding(2);
-            this.width.Maximum = new decimal(new int[] {
+            this.widthUpDown.Location = new System.Drawing.Point(196, 101);
+            this.widthUpDown.Margin = new System.Windows.Forms.Padding(2);
+            this.widthUpDown.Maximum = new decimal(new int[] {
             21,
             0,
             0,
             0});
-            this.width.Minimum = new decimal(new int[] {
+            this.widthUpDown.Minimum = new decimal(new int[] {
             7,
             0,
             0,
             0});
-            this.width.Name = "width";
-            this.width.Size = new System.Drawing.Size(90, 20);
-            this.width.TabIndex = 25;
-            this.width.Value = new decimal(new int[] {
+            this.widthUpDown.Name = "widthUpDown";
+            this.widthUpDown.Size = new System.Drawing.Size(90, 20);
+            this.widthUpDown.TabIndex = 25;
+            this.widthUpDown.Value = new decimal(new int[] {
             15,
             0,
             0,
             0});
             // 
-            // height
+            // heightUpDown
             // 
-            this.height.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.height.Increment = new decimal(new int[] {
+            this.heightUpDown.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.heightUpDown.Increment = new decimal(new int[] {
             2,
             0,
             0,
             0});
-            this.height.Location = new System.Drawing.Point(196, 128);
-            this.height.Margin = new System.Windows.Forms.Padding(2);
-            this.height.Maximum = new decimal(new int[] {
+            this.heightUpDown.Location = new System.Drawing.Point(196, 128);
+            this.heightUpDown.Margin = new System.Windows.Forms.Padding(2);
+            this.heightUpDown.Maximum = new decimal(new int[] {
             21,
             0,
             0,
             0});
-            this.height.Minimum = new decimal(new int[] {
+            this.heightUpDown.Minimum = new decimal(new int[] {
             7,
             0,
             0,
             0});
-            this.height.Name = "height";
-            this.height.Size = new System.Drawing.Size(90, 20);
-            this.height.TabIndex = 26;
-            this.height.Value = new decimal(new int[] {
+            this.heightUpDown.Name = "heightUpDown";
+            this.heightUpDown.Size = new System.Drawing.Size(90, 20);
+            this.heightUpDown.TabIndex = 26;
+            this.heightUpDown.Value = new decimal(new int[] {
             15,
             0,
             0,
@@ -370,8 +371,8 @@
             this.ClientSize = new System.Drawing.Size(831, 514);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.pictureMaze);
-            this.Controls.Add(this.height);
-            this.Controls.Add(this.width);
+            this.Controls.Add(this.heightUpDown);
+            this.Controls.Add(this.widthUpDown);
             this.Controls.Add(this.Generate);
             this.Controls.Add(this.EntryExit);
             this.Controls.Add(this.saveToFile);
@@ -390,8 +391,8 @@
             this.Name = "Admin";
             this.Text = "Admin";
             this.Load += new System.EventHandler(this.Admin_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.width)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.height)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.widthUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.heightUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).EndInit();
             this.modeGroupBox.ResumeLayout(false);
             this.modeGroupBox.PerformLayout();
@@ -414,8 +415,8 @@
         private System.Windows.Forms.Button saveToFile;
         private System.Windows.Forms.Button EntryExit;
         private System.Windows.Forms.Button Generate;
-        private System.Windows.Forms.NumericUpDown width;
-        private System.Windows.Forms.NumericUpDown height;
+        private System.Windows.Forms.NumericUpDown widthUpDown;
+        private System.Windows.Forms.NumericUpDown heightUpDown;
         private System.Windows.Forms.PictureBox pictureMaze;
         private System.Windows.Forms.GroupBox modeGroupBox;
         private System.Windows.Forms.RadioButton radioButtonAdminAuto;

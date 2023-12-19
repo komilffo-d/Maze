@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{80673242-D700-4BA0-9344-DC6903E464CF}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>Maze</RootNamespace>
     <AssemblyName>Maze</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -63,6 +63,9 @@
   <PropertyGroup>
     <SignManifests>true</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Syroot.KnownFolders, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Syroot.Windows.IO.KnownFolders.1.3.0\lib\netstandard2.0\Syroot.KnownFolders.dll</HintPath>
@@ -106,6 +109,7 @@
     <Compile Include="Gamer.Designer.cs">
       <DependentUpon>Gamer.cs</DependentUpon>
     </Compile>
+    <Compile Include="HandSolver.cs" />
     <Compile Include="WaveSolver.cs" />
     <Compile Include="ListExtentions.cs" />
     <Compile Include="MazeGeneratorAldousBroder.cs" />

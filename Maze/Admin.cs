@@ -23,8 +23,10 @@ namespace Maze
         }
         private StepForm stepForm = StepForm.NOTCREATETEMPLATE;
         private bool[,] FillWallsArray;
-        private Tuple<int, int> startPoint = null;
-        private Tuple<int, int> endPoint = null;
+        private Point startPoint;
+        private Point endPoint;
+        private uint gridWidth;
+        private uint gridHeight;
         public Admin()
         {
             InitializeComponent();
@@ -33,7 +35,10 @@ namespace Maze
 
         private void createPattern_Click(object sender, EventArgs e)
         {
+            gridWidth = (uint)widthUpDown.Value;
+            gridHeight = (uint)heightUpDown.Value;
             DrawMaze();
+            Generate.Visible = true;
             stepForm = StepForm.CREATEDTEMPLATE;
         }
         private bool[,] List2DToArray(List<List<bool>> listBoolean)
@@ -56,8 +61,7 @@ namespace Maze
         }
         private void Generate_Click(object sender, EventArgs e)
         {
-            uint gridWidth = (uint)width.Value;
-            uint gridHeight = (uint)height.Value;
+
             if (radioButtonEuler.Checked)
             {
                 bool[,] maze = List2DToArray(MazeGeneratorEuler.GenerateMaze(gridWidth / 2, gridHeight / 2));
@@ -66,6 +70,7 @@ namespace Maze
             else if (radioButtonAldousBroder.Checked)
             {
                 bool[,] maze = List2DToArray(new MazeGeneratorAldousBroder().Generate((int)gridWidth, (int)gridHeight));
+                (startPoint, endPoint) = FindFreeSpaces(maze);
                 DrawMaze(maze);
 
             }
@@ -73,11 +78,34 @@ namespace Maze
             stepForm = StepForm.GENERATEDMAZE;
 
         }
+        static Tuple<Point, Point> FindFreeSpaces(bool[,] maze)
+        {
+
+            int randomRow, randomCol;
+            Point startPoint = new Point();
+            Point endPoint = new Point();
+            double distance = 0.0;
+            do
+            {
+                Random random = new Random();
+
+                // Генерируйте случайные индексы
+                randomRow = random.Next(0, maze.GetLength(0));
+                randomCol = random.Next(0, maze.GetLength(1));
+                startPoint = new Point(randomRow, randomCol);
+
+                randomRow = random.Next(0, maze.GetLength(0));
+                randomCol = random.Next(0, maze.GetLength(1));
+
+                endPoint = new Point(randomRow, randomCol);
+
+                distance = Math.Sqrt(Math.Pow(endPoint.X - startPoint.X, 2) + Math.Pow(endPoint.Y - startPoint.Y, 2));
+            } while (distance < 7.0 || maze[startPoint.X, startPoint.Y]==true | maze[endPoint.X, endPoint.Y] == true);
+
+            return new Tuple<Point, Point>(startPoint, endPoint);
+        }
         private void DrawMaze(bool[,] mazeMatrix = null)
         {
-            int gridWidth = (int)width.Value;
-            int gridHeight = (int)height.Value;
-
             float cellWidth = (float)pictureMaze.Width / gridWidth;
             float cellHeight = (float)pictureMaze.Height / gridHeight;
 
@@ -126,15 +154,15 @@ namespace Maze
 
                 if (startPoint != null)
                 {
-                    int x = (int)(startPoint.Item2 * cellWidth);
-                    int y = (int)(startPoint.Item1 * cellHeight);
+                    int x = (int)(startPoint.Y * cellWidth);
+                    int y = (int)(startPoint.X * cellHeight);
                     g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
                 }
 
                 if (endPoint != null)
                 {
-                    int x = (int)(endPoint.Item2 * cellWidth);
-                    int y = (int)(endPoint.Item1 * cellHeight);
+                    int x = (int)(endPoint.Y * cellWidth);
+                    int y = (int)(endPoint.X * cellHeight);
                     g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
                 }
 
@@ -196,11 +224,11 @@ namespace Maze
                 }
                 if (startPoint != null)
                 {
-                    writer.WriteElementString("StartPoint", $"{startPoint.Item1}:{startPoint.Item2}");
+                    writer.WriteElementString("StartPoint", $"{startPoint.X}:{startPoint.Y}");
                 }
                 if (endPoint != null)
                 {
-                    writer.WriteElementString("EndPoint", $"{endPoint.Item1}:{endPoint.Item2}");
+                    writer.WriteElementString("EndPoint", $"{endPoint.X}:{endPoint.Y}");
                 }
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
@@ -295,7 +323,7 @@ namespace Maze
 
                     if (FillWallsArray[cellRowIndex, cellColumnIndex] == false)
                     {
-                        startPoint = new Tuple<int, int>(cellRowIndex, cellColumnIndex);
+                        startPoint = new Point(cellRowIndex, cellColumnIndex);
                         DrawMaze(FillWallsArray);
                         stepForm = StepForm.SETPOINTENTRY;
                     }
@@ -304,7 +332,7 @@ namespace Maze
                 case StepForm.SETPOINTENTRY:
                     if (FillWallsArray[cellRowIndex, cellColumnIndex] == false)
                     {
-                        endPoint = new Tuple<int, int>(cellRowIndex, cellColumnIndex);
+                        endPoint = new Point(cellRowIndex, cellColumnIndex);
                         DrawMaze(FillWallsArray);
                         stepForm = StepForm.SETPOINTEXIT;
                     }

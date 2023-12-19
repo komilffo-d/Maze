@@ -142,7 +142,6 @@ namespace Maze
             var pathQueue = new Queue<Point>();
             pathQueue.Enqueue(end);
             path.Push(end);
-            List<Point> pathRaw = new List<Point>();
             while (pathQueue.Any())
             {
                 var currentPoint = pathQueue.Dequeue();
@@ -157,13 +156,12 @@ namespace Maze
                     {
                         path.Push(nextCell);
                         pathQueue.Enqueue(nextCell);
-                        pathRaw.Add(new Point(nextCell.X, nextCell.Y));
                         break;
                     }
 
                 }
             }
-            return pathRaw.ToArray();
+            return path.ToArray();
         }
 
         private static bool IsValidCoordinates(Point point, int width, int height)
@@ -193,7 +191,7 @@ namespace Maze
         public struct Point
         {
             public readonly int X, Y;
-/*            public bool UP,DOWN,LEFT,RIGHT;*/
+
             public Point(int x, int y)
             {
                 X = x;
