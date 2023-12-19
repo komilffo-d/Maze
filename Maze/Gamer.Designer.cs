@@ -309,7 +309,7 @@
             this.pictureBox2.Image = global::Maze.Properties.Resources.mario;
             this.pictureBox2.Location = new System.Drawing.Point(452, 29);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(43, 43);
+            this.pictureBox2.Size = new System.Drawing.Size(117, 131);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 29;
             this.pictureBox2.TabStop = false;

@@ -41,8 +41,8 @@
             this.Generate = new System.Windows.Forms.Button();
             this.width = new System.Windows.Forms.NumericUpDown();
             this.height = new System.Windows.Forms.NumericUpDown();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.pictureMaze = new System.Windows.Forms.PictureBox();
+            this.modeGroupBox = new System.Windows.Forms.GroupBox();
             this.radioButtonAdminAuto = new System.Windows.Forms.RadioButton();
             this.radioButtonAdminHands = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -50,8 +50,8 @@
             this.radioButtonEuler = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.width)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.height)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).BeginInit();
+            this.modeGroupBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -179,6 +179,7 @@
             // 
             this.EntryExit.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.EntryExit.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.EntryExit.Enabled = false;
             this.EntryExit.Font = new System.Drawing.Font("Microsoft YaHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.EntryExit.ForeColor = System.Drawing.SystemColors.Window;
             this.EntryExit.Location = new System.Drawing.Point(38, 397);
@@ -188,6 +189,7 @@
             this.EntryExit.TabIndex = 23;
             this.EntryExit.Text = "Расставить вход и выход";
             this.EntryExit.UseVisualStyleBackColor = false;
+            this.EntryExit.Visible = false;
             // 
             // Generate
             // 
@@ -262,36 +264,38 @@
             0,
             0});
             // 
-            // pictureBox1
+            // pictureMaze
             // 
-            this.pictureBox1.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.pictureBox1.BackColor = System.Drawing.SystemColors.Control;
-            this.pictureBox1.Location = new System.Drawing.Point(416, 22);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(406, 410);
-            this.pictureBox1.TabIndex = 27;
-            this.pictureBox1.TabStop = false;
+            this.pictureMaze.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pictureMaze.BackColor = System.Drawing.SystemColors.Control;
+            this.pictureMaze.Location = new System.Drawing.Point(416, 22);
+            this.pictureMaze.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureMaze.Name = "pictureMaze";
+            this.pictureMaze.Size = new System.Drawing.Size(406, 410);
+            this.pictureMaze.TabIndex = 27;
+            this.pictureMaze.TabStop = false;
+            this.pictureMaze.Click += new System.EventHandler(this.pictureMaze_Click);
             // 
-            // groupBox1
+            // modeGroupBox
             // 
-            this.groupBox1.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.groupBox1.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.groupBox1.Controls.Add(this.radioButtonAdminAuto);
-            this.groupBox1.Controls.Add(this.radioButtonAdminHands);
-            this.groupBox1.ForeColor = System.Drawing.SystemColors.AppWorkspace;
-            this.groupBox1.Location = new System.Drawing.Point(9, 245);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox1.Size = new System.Drawing.Size(403, 57);
-            this.groupBox1.TabIndex = 28;
-            this.groupBox1.TabStop = false;
+            this.modeGroupBox.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.modeGroupBox.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.modeGroupBox.Controls.Add(this.radioButtonAdminAuto);
+            this.modeGroupBox.Controls.Add(this.radioButtonAdminHands);
+            this.modeGroupBox.ForeColor = System.Drawing.SystemColors.AppWorkspace;
+            this.modeGroupBox.Location = new System.Drawing.Point(9, 245);
+            this.modeGroupBox.Margin = new System.Windows.Forms.Padding(2);
+            this.modeGroupBox.Name = "modeGroupBox";
+            this.modeGroupBox.Padding = new System.Windows.Forms.Padding(2);
+            this.modeGroupBox.Size = new System.Drawing.Size(403, 57);
+            this.modeGroupBox.TabIndex = 28;
+            this.modeGroupBox.TabStop = false;
             // 
             // radioButtonAdminAuto
             // 
             this.radioButtonAdminAuto.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.radioButtonAdminAuto.AutoSize = true;
+            this.radioButtonAdminAuto.Checked = true;
             this.radioButtonAdminAuto.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.radioButtonAdminAuto.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.radioButtonAdminAuto.Location = new System.Drawing.Point(174, 22);
@@ -314,7 +318,6 @@
             this.radioButtonAdminHands.Name = "radioButtonAdminHands";
             this.radioButtonAdminHands.Size = new System.Drawing.Size(126, 22);
             this.radioButtonAdminHands.TabIndex = 29;
-            this.radioButtonAdminHands.TabStop = true;
             this.radioButtonAdminHands.Text = "Ручной режим";
             this.radioButtonAdminHands.UseVisualStyleBackColor = true;
             // 
@@ -366,7 +369,7 @@
             this.BackColor = System.Drawing.SystemColors.ControlDark;
             this.ClientSize = new System.Drawing.Size(831, 514);
             this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.pictureMaze);
             this.Controls.Add(this.height);
             this.Controls.Add(this.width);
             this.Controls.Add(this.Generate);
@@ -380,17 +383,18 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.AdminAboutSys);
             this.Controls.Add(this.AdminAboutUs);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.modeGroupBox);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Admin";
             this.Text = "Admin";
+            this.Load += new System.EventHandler(this.Admin_Load);
             ((System.ComponentModel.ISupportInitialize)(this.width)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.height)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureMaze)).EndInit();
+            this.modeGroupBox.ResumeLayout(false);
+            this.modeGroupBox.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
@@ -412,8 +416,8 @@
         private System.Windows.Forms.Button Generate;
         private System.Windows.Forms.NumericUpDown width;
         private System.Windows.Forms.NumericUpDown height;
-        private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.PictureBox pictureMaze;
+        private System.Windows.Forms.GroupBox modeGroupBox;
         private System.Windows.Forms.RadioButton radioButtonAdminAuto;
         private System.Windows.Forms.RadioButton radioButtonAdminHands;
         private System.Windows.Forms.GroupBox groupBox2;

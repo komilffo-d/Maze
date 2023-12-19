@@ -1,8 +1,8 @@
 ﻿using MazeGenerator;
 using Syroot.Windows.IO;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml;
@@ -11,9 +11,20 @@ namespace Maze
 {
     public partial class Admin : Form
     {
-        private Point[,] gridArray;// Массив для хранения координат
-        private bool[,] FillWallsArray;
+        private protected enum StepForm : sbyte
+        {
+            NOTCREATETEMPLATE = 1,
+            CREATEDTEMPLATE,
+            SETPOINTENTRY,
+            SETPOINTEXIT,
+            GENERATEDMAZE,
+            EXPORTEDMAZE
 
+        }
+        private StepForm stepForm = StepForm.NOTCREATETEMPLATE;
+        private bool[,] FillWallsArray;
+        private Tuple<int, int> startPoint = null;
+        private Tuple<int, int> endPoint = null;
         public Admin()
         {
             InitializeComponent();
@@ -22,101 +33,83 @@ namespace Maze
 
         private void createPattern_Click(object sender, EventArgs e)
         {
-            int gridWidth = (int)width.Value;
-            int gridHeight = (int)height.Value;
-
-            // Инициализация массива для координат
-            gridArray = new Point[gridWidth, gridHeight];
-
-            // Создание Bitmap для рисования сетки
-            if (pictureBox1.Image == null || pictureBox1.Image.Width != pictureBox1.Width || pictureBox1.Image.Height != pictureBox1.Height)
-            {
-                if (pictureBox1.Image != null)
-                {
-                    pictureBox1.Image.Dispose(); // Освобождение ресурсов старого изображения
-                }
-                pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            }
-
-            // Получение Graphics из PictureBox
-            using (Graphics g = Graphics.FromImage(pictureBox1.Image))
-            {
-                g.Clear(pictureBox1.BackColor); // Чистка для прорисовки новой сетки
-
-                // Расчет размера каждой клетки с учетом остатка
-                float cellWidth = (float)pictureBox1.Width / gridWidth;
-                float cellHeight = (float)pictureBox1.Height / gridHeight;
-
-                // Рисование сетки и заполнение массива координат
-                for (int i = 0; i < gridWidth; i++)
-                {
-                    for (int j = 0; j < gridHeight; j++)
-                    {
-                        // Рассчитать координаты верхнего левого угла текущей клетки
-                        int x = (int)(i * cellWidth);
-                        int y = (int)(j * cellHeight);
-                        int nextX = (int)((i + 1) * cellWidth);
-                        int nextY = (int)((j + 1) * cellHeight);
-
-                        // Сохранение координат клетки в массив
-                        gridArray[i, j] = new Point(x, y);
-
-                        // Рисование прямоугольника (клетки)
-                        g.DrawRectangle(Pens.Black, x, y, nextX - x, nextY - y);
-                    }
-                }
-            }
-
-            // Обновление PictureBox для отображения нарисованной сетки
-            pictureBox1.Invalidate();
+            DrawMaze();
+            stepForm = StepForm.CREATEDTEMPLATE;
         }
+        private bool[,] List2DToArray(List<List<bool>> listBoolean)
+        {
 
+
+            int rows = listBoolean.Count;
+            int cols = listBoolean[0].Count;
+
+            bool[,] array2D = new bool[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    array2D[i, j] = listBoolean[i][j];
+                }
+            }
+            return array2D;
+        }
         private void Generate_Click(object sender, EventArgs e)
         {
-            int gridWidth = (int)width.Value;
-            int gridHeight = (int)height.Value;
+            uint gridWidth = (uint)width.Value;
+            uint gridHeight = (uint)height.Value;
             if (radioButtonEuler.Checked)
             {
-                MazeGeneratorEuler mazeGeneratorEuler = new MazeGeneratorEuler(gridWidth, gridHeight);
-                mazeGeneratorEuler.GenerateMaze();
-                DrawMaze(mazeGeneratorEuler);
+                bool[,] maze = List2DToArray(MazeGeneratorEuler.GenerateMaze(gridWidth / 2, gridHeight / 2));
+                DrawMaze(maze);
+                /*                var list = MazeGenerator.MazeGenerator.Generate((uint)gridWidth/2, (uint)gridHeight/2);
+                                MazeGenerator.MazeGenerator.Print(List2DToArray(list));*/
             }
             else if (radioButtonAldousBroder.Checked)
             {
-                MazeGeneratorAldousBroder mazeGeneratorAldousBroder = new MazeGeneratorAldousBroder(gridWidth, gridHeight);
-                mazeGeneratorAldousBroder.GenerateMaze();
-                DrawMaze(mazeGeneratorAldousBroder);
+
+                bool[,] maze= MazeGeneratorAldousBroder.DisplayMaze(MazeGeneratorAldousBroder.Main((int)gridWidth/2, (int)gridHeight/2,0));
+                DrawMaze(maze);
+                /*                MazeGeneratorAldousBroder mazeGeneratorAldousBroder = new MazeGeneratorAldousBroder(gridWidth, gridHeight);
+                                mazeGeneratorAldousBroder.GenerateMaze();
+                                DrawMaze(mazeGeneratorAldousBroder);*/
             }
 
+            stepForm = StepForm.GENERATEDMAZE;
+
         }
-        private void DrawMaze(IMazeGenerator mazeGenerator = null)
+        private void DrawMaze(bool[,] mazeMatrix = null)
         {
             int gridWidth = (int)width.Value;
             int gridHeight = (int)height.Value;
 
-            float cellWidth = (float)pictureBox1.Width / gridWidth;
-            float cellHeight = (float)pictureBox1.Height / gridHeight;
+            float cellWidth = (float)pictureMaze.Width / gridWidth;
+            float cellHeight = (float)pictureMaze.Height / gridHeight;
 
-            Pen wallPen = new Pen(Color.Black, 2f);
+            Pen wallPen = new Pen(Color.Black);
             SolidBrush cellBrush = new SolidBrush(Color.White);
-            SolidBrush startFinishBrush = new SolidBrush(Color.Green);
+            SolidBrush wallBrush = new SolidBrush(Color.Black);
 
-            FillWallsArray = mazeGenerator.maze;
-            if (pictureBox1.Image == null || pictureBox1.Image.Width != pictureBox1.Width || pictureBox1.Image.Height != pictureBox1.Height)
+            SolidBrush startPointBrush = new SolidBrush(Color.Green);
+
+            SolidBrush endPointBrush = new SolidBrush(Color.Red);
+
+            FillWallsArray = mazeMatrix;
+            if (pictureMaze.Image == null || pictureMaze.Image.Width != pictureMaze.Width || pictureMaze.Image.Height != pictureMaze.Height)
             {
-                if (pictureBox1.Image != null)
+                if (pictureMaze.Image != null)
                 {
-                    pictureBox1.Image.Dispose();
+                    pictureMaze.Image.Dispose();
                 }
-                pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+                pictureMaze.Image = new Bitmap(pictureMaze.Width, pictureMaze.Height);
             }
-            using (Graphics g = Graphics.FromImage(pictureBox1.Image))
+            using (Graphics g = Graphics.FromImage(pictureMaze.Image))
             {
-               
+
                 g.Clear(Color.White);
-                for (int row = 0; row < gridWidth; row++)
+                for (int row = 0; row < gridHeight; row++)
                 {
-                    for (int col = 0; col < gridHeight; col++)
+                    for (int col = 0; col < gridWidth; col++)
                     {
                         int x = (int)(col * cellWidth);
                         int y = (int)(row * cellHeight);
@@ -128,16 +121,31 @@ namespace Maze
                         g.FillRectangle(cellBrush, x, y, cellWidth, cellHeight);
                         g.DrawRectangle(wallPen, x, y, nextX - x, nextY - y);
 
-                        if (FillWallsArray[row, col] == true)
-                        {
-                            g.FillRectangle(startFinishBrush, x, y, cellWidth, cellHeight);
-                        }
+                        if (FillWallsArray != null && FillWallsArray[row, col] == true)
+                            g.FillRectangle(wallBrush, x, y, cellWidth, cellHeight);
+
+
 
                     }
                 }
 
+                if (startPoint != null)
+                {
+                    int x = (int)(startPoint.Item2 * cellWidth);
+                    int y = (int)(startPoint.Item1 * cellHeight);
+                    g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
+                }
+
+                if (endPoint != null)
+                {
+                    int x = (int)(endPoint.Item2 * cellWidth);
+                    int y = (int)(endPoint.Item1 * cellHeight);
+                    g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
+                }
+
+
             }
-            pictureBox1.Invalidate();
+            pictureMaze.Invalidate();
 
         }
         private void AdminAboutUs_Click(object sender, EventArgs e)
@@ -170,47 +178,150 @@ namespace Maze
                 MessageBox.Show("Файл не найден", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        private void saveToFile_Click(object sender, EventArgs e)
+        private bool SaveMatrixToXml(string filePath)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "XML файлы (*.xml)|*.xml";
-            saveFileDialog.InitialDirectory = KnownFolders.Downloads.Path;
-            if(FillWallsArray is null || FillWallsArray?.Length == 0)
-            {
-                MessageBox.Show("Генерация лабиринта не выполнена!");
-                return;
-            }
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
 
-            if (saveFileDialog.ShowDialog() == DialogResult.OK )
+            using (XmlWriter writer = XmlWriter.Create(filePath, settings))
             {
-                XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Indent = true;
+                writer.WriteStartDocument();
+                writer.WriteStartElement("Matrix");
 
-                using (XmlWriter writer = XmlWriter.Create(saveFileDialog.FileName, settings))
+                for (int i = 0; i < FillWallsArray.GetLength(0); i++)
                 {
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("Matrix");
+                    writer.WriteStartElement("Row");
 
-                    for (int i = 0; i < FillWallsArray.GetLength(0); i++)
+                    for (int j = 0; j < FillWallsArray.GetLength(1); j++)
                     {
-                        writer.WriteStartElement("Row");
-
-                        for (int j = 0; j < FillWallsArray.GetLength(1); j++)
-                        {
-                            writer.WriteElementString("Cell", FillWallsArray[i, j].ToString());
-                        }
-
-                        writer.WriteEndElement();
+                        writer.WriteElementString("Cell", FillWallsArray[i, j].ToString());
                     }
 
                     writer.WriteEndElement();
-                    writer.WriteEndDocument();
-                    MessageBox.Show("Лабиринт успешно сохранён в файл!");
                 }
+                if (startPoint != null)
+                {
+                    writer.WriteElementString("StartPoint", $"{startPoint.Item1}:{startPoint.Item2}");
+                }
+                if (endPoint != null)
+                {
+                    writer.WriteElementString("EndPoint", $"{endPoint.Item1}:{endPoint.Item2}");
+                }
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+                MessageBox.Show("Лабиринт успешно сохранён в файл!");
+            }
+            return true;
+        }
+        private void saveToFile_Click(object sender, EventArgs e)
+        {
+            switch (stepForm)
+            {
+                case StepForm.NOTCREATETEMPLATE:
+                    MessageBox.Show("Создайте шаблон!");
+                    break;
+                case StepForm.CREATEDTEMPLATE:
+                    MessageBox.Show("Расставьте точки входа и выхода!");
+                    break;
+                /*                case StepForm.SETPOINTENTRYEXIT:
+                                    MessageBox.Show("Сгенерируйте матрицу!!");
+
+                                    break;*/
+                case StepForm.SETPOINTEXIT:
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "XML файлы (*.xml)|*.xml";
+                    saveFileDialog.InitialDirectory = KnownFolders.Downloads.Path;
+                    if (FillWallsArray is null || FillWallsArray?.Length == 0)
+                    {
+                        MessageBox.Show("Генерация лабиринта не выполнена!");
+                        break;
+                    }
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        SaveMatrixToXml(saveFileDialog.FileName);
+                        stepForm = StepForm.EXPORTEDMAZE;
+                    }
+                    break;
+
+                case StepForm.EXPORTEDMAZE:
+                    break;
             }
 
-                
+
+
+        }
+
+        private void Admin_Load(object sender, EventArgs e)
+        {
+
+            Control.ControlCollection modes = modeGroupBox.Controls;
+
+            foreach (RadioButton rdb in modes)
+            {
+                rdb.MouseUp += ModeRadioButtons_CheckedChanged;
+            }
+        }
+        private void ModeRadioButtons_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+
+            if (radioButton.Checked == true)
+            {
+                switch (radioButton.Name)
+                {
+                    case "radioButtonAdminAuto":
+                        EntryExit.Enabled = false;
+                        EntryExit.Visible = false;
+                        break;
+                    case "radioButtonAdminHands":
+                        EntryExit.Enabled = true;
+                        EntryExit.Visible = true;
+                        break;
+                }
+            }
+        }
+
+        private void pictureMaze_Click(object sender, EventArgs e)
+        {
+            uint gridWidth = (uint)FillWallsArray.GetLength(0);
+            uint gridHeight = (uint)FillWallsArray.GetLength(1);
+            float cellWidth = (float)pictureMaze.Width / gridWidth;
+            float cellHeight = (float)pictureMaze.Height / gridHeight;
+            MouseEventArgs me = (MouseEventArgs)e;
+            int cellRowIndex = Convert.ToInt32(Math.Floor(me.Y / cellHeight));
+            int cellColumnIndex = Convert.ToInt32(Math.Floor(me.X / cellWidth));
+            switch (stepForm)
+            {
+                case StepForm.NOTCREATETEMPLATE:
+                    MessageBox.Show("Создайте шаблон!");
+                    break;
+                case StepForm.GENERATEDMAZE:
+
+                    if (FillWallsArray[cellRowIndex, cellColumnIndex] == false)
+                    {
+                        startPoint = new Tuple<int, int>(cellRowIndex, cellColumnIndex);
+                        DrawMaze(FillWallsArray);
+                        stepForm = StepForm.SETPOINTENTRY;
+                    }
+
+                    break;
+                case StepForm.SETPOINTENTRY:
+                    if (FillWallsArray[cellRowIndex, cellColumnIndex] == false)
+                    {
+                        endPoint = new Tuple<int, int>(cellRowIndex, cellColumnIndex);
+                        DrawMaze(FillWallsArray);
+                        stepForm = StepForm.SETPOINTEXIT;
+                    }
+
+                    break;
+                case StepForm.SETPOINTEXIT:
+                    MessageBox.Show("Точки входа и выхода расставлены!");
+                    break;
+
+            }
+
+
         }
     }
 }
