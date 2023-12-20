@@ -72,7 +72,7 @@ namespace Maze
                 return new Point[0];
 
             var pathMap = (int[,])map.Clone();
-            PreparePathMap(pathMap, width);
+            PreparePathMap(pathMap);
 
             var pathQueue = new Queue<Point>();
             pathQueue.Enqueue(start);
@@ -168,15 +168,17 @@ namespace Maze
         {
             if (point.X < 0
                 || point.Y < 0
-                || point.X >= width
-                || point.Y >= height)
+                || point.X >= height
+                || point.Y >= width)
                 return false;
             return true;
         }
 
-        private static void PreparePathMap(int[,] mapForSearch, int width)
+        private static void PreparePathMap(int[,] mapForSearch)
         {
-            for (var x = 0; x < width; x++)
+            var width = mapForSearch.GetLength(1);
+            var height = mapForSearch.GetLength(0);
+            for (var x = 0; x < height; x++)
                 for (var y = 0; y < width; y++)
                     if (mapForSearch[x, y] == 1)
                         mapForSearch[x, y] = -1;

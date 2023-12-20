@@ -1,12 +1,11 @@
-﻿using Syroot.Windows.IO;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Net;
-
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Schema;
 using RadioButton = System.Windows.Forms.RadioButton;
 
 namespace Maze
@@ -21,8 +20,14 @@ namespace Maze
             ENDPASS
 
         }
+        private bool _isValid = true;
+        public List<string> errorList = new List<string>();
+
         SolidBrush wallBrush = new SolidBrush(Color.Orange);
+        List<PictureBox> pictureBoxes = new List<PictureBox>();
         private bool[,] FillWallsArray;
+        Image backgroundCellImage = null;
+        private string backgroundCellFileName = @"Resources\halloween.jpg";
         private Point? startPoint = null;
         private Point? endPoint = null;
         private uint gridWidth;
@@ -61,6 +66,7 @@ namespace Maze
                     trackBarSpeed.Visible = false;
                     trackBarSpeed.Enabled = false;
                     radioButtonHands.Checked = true;
+                    ThemeGroupBox.Enabled = true;
                     radioButtonHalloween.Checked = true;
                     ThemeRadioButtons_CheckedChanged(radioButtonHalloween, null);
                     ModeRadioButtons_CheckedChanged(radioButtonHands, null);
@@ -74,10 +80,12 @@ namespace Maze
                     gridHeight = (uint)FillWallsArray.GetLength(0);
                     startGame.Visible = true;
                     startGame.Enabled = true;
+                    ThemeGroupBox.Enabled = true;
                     trackBarSpeed.Enabled = true;
-                    radioButtonHands.Checked = true;
-                    radioButtonHalloween.Checked = true;
                     ThemeRadioButtons_CheckedChanged(radioButtonHalloween, null);
+                    ThemeRadioButtons_CheckedChanged(radioButtonNewYear, null);
+                    ThemeRadioButtons_CheckedChanged(radioButtonSea, null);
+                    ThemeRadioButtons_CheckedChanged(radioButtonForest, null);
                     ModeRadioButtons_CheckedChanged(radioButtonHands, null);
                     break;
                 case EStepForm.BEGANPASS:
@@ -88,15 +96,14 @@ namespace Maze
                     startGame.Visible = false;
                     startGame.Enabled = false;
                     trackBarSpeed.Visible = false;
+                    ThemeGroupBox.Enabled = false;
                     trackBarSpeed.Enabled = false;
                     pictureMaze.Focus();
                     if (radioButtonAuto.Checked)
                         AutoPassMaze();
                     break;
                 case EStepForm.ENDPASS:
-
-                    startGame.Visible = false;
-                    startGame.Enabled = false;
+                    StepForm = EStepForm.LOADEDMAZE;
                     break;
 
             }
@@ -193,67 +200,124 @@ namespace Maze
             if ((cellRowIndex, cellColumnIndex) == (endPoint?.X, endPoint?.Y))
             {
                 MessageBox.Show("Лабиринт пройден!");
-                clearAll();
+                StepForm = EStepForm.ENDPASS;
             }
         }
 
+        public bool Validate(XmlDocument document, XmlSchemaSet schema)
+        {
+            ValidationEventHandler eventHandler = new ValidationEventHandler(ValidationEventHandler);
+            document.Schemas = schema;
+            document.Validate(eventHandler);
+            return _isValid;
+        }
+
+        private void ValidationEventHandler(object sender, ValidationEventArgs e)
+        {
+            _isValid = false;
+            errorList.Add(e.Message);
+        }
         private bool[,] ReadMatrixFromXml(string filePath)
         {
-            XmlReader XMLReader = XmlReader.Create(filePath);
+
+            _isValid = true;
             int rows = 0;
             int cols = 0;
             bool[,] matrix;
-
-            while (XMLReader.Read())
+            try
             {
-                int count = 0;
-                if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "Row")
-                {
-                    rows++;
-                    XMLReader.ReadToDescendant("Cell");
 
-                    do
+
+
+                using (XmlReader XMLReader = XmlReader.Create(filePath))
+                {
+                    while (XMLReader.Read())
                     {
-                        count++;
-                    } while (XMLReader.ReadToNextSibling("Cell"));
+
+                        int count = 0;
+
+                        if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "Row")
+                        {
+                            rows++;
+
+                            XMLReader.ReadToDescendant("Cell");
+
+                            do
+                            {
+                                count++;
+                            } while (XMLReader.ReadToNextSibling("Cell"));
+                        }
+
+                        cols = Math.Max(cols, count);
+                    }
+
                 }
-                cols = Math.Max(cols, count);
+                XmlSchemaSet schemaSet = new XmlSchemaSet();
+                schemaSet.Add(null, $@"{Environment.CurrentDirectory}\Resources\ruleMaze.xsd");
+                XmlDocument xmlDocument = new XmlDocument();
+                xmlDocument.Load(filePath);
+                Validate(xmlDocument, schemaSet);
+
+                if (!_isValid || rows < 7 || rows > 21 || cols < 7 || cols > 21)
+                    return null;
             }
-
-            XMLReader = XmlReader.Create(filePath);
-
-            matrix = new bool[rows, cols];
-
-            int currentRow = 0;
-            int currentCol = 0;
-
-            while (XMLReader.Read())
+            catch
             {
-                if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "Cell")
-                {
-                    matrix[currentRow, currentCol] = bool.Parse(XMLReader.ReadElementContentAsString());
-                    currentCol++;
-                }
-                else if (XMLReader.NodeType == XmlNodeType.EndElement && XMLReader.Name == "Row")
-                {
-                    currentRow++;
-                    currentCol = 0;
-                }
-                else if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "StartPoint")
-                {
-                    string[] location = XMLReader.ReadElementContentAsString().Split(':');
-                    startPoint = new Point(int.Parse(location[0]), int.Parse(location[1]));
-                }
-                else if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "EndPoint")
-                {
-                    string[] location = XMLReader.ReadElementContentAsString().Split(':');
-                    endPoint = new Point(int.Parse(location[0]), int.Parse(location[1]));
-                }
+                return null;
             }
 
+            using (XmlReader XMLReader = XmlReader.Create(filePath))
+            {
+                matrix = new bool[rows, cols];
+
+                int currentRow = 0;
+                int currentCol = 0;
+
+                while (XMLReader.Read())
+                {
+                    if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "Cell")
+                    {
+                        matrix[currentRow, currentCol] = bool.Parse(XMLReader.ReadElementContentAsString());
+                        currentCol++;
+                    }
+                    else if (XMLReader.NodeType == XmlNodeType.EndElement && XMLReader.Name == "Row")
+                    {
+                        currentRow++;
+                        currentCol = 0;
+                    }
+                    else if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "StartPoint")
+                    {
+                        string[] location = XMLReader.ReadElementContentAsString().Split(':');
+                        startPoint = new Point(int.Parse(location[0]), int.Parse(location[1]));
+                    }
+                    else if (XMLReader.NodeType == XmlNodeType.Element && XMLReader.Name == "EndPoint")
+                    {
+                        string[] location = XMLReader.ReadElementContentAsString().Split(':');
+                        endPoint = new Point(int.Parse(location[0]), int.Parse(location[1]));
+                    }
+                }
+            }
             return matrix;
         }
-        private void DrawMaze()
+        private void DrawPath(Point item)
+        {
+            if (FillWallsArray != null && pictureMaze.Image != null)
+            {
+
+                Control[] pictureMazes = pictureMaze.Controls.Find($"pictureBox_{item.X}-{item.Y}", true);
+                foreach (Control pictureMazeControl in pictureMazes)
+                {
+                    PictureBox picture = pictureMazeControl as PictureBox;
+                    pictureMaze.Controls.Remove(picture);
+                    pictureBoxes.Remove(picture);
+                    pictureMaze.Invalidate();
+                }
+
+
+
+            }
+        }
+        private async void DrawMaze()
         {
             if (FillWallsArray is null || FillWallsArray?.Length == 0)
                 return;
@@ -266,73 +330,125 @@ namespace Maze
             SolidBrush startPointBrush = new SolidBrush(Color.GreenYellow);
 
             SolidBrush endPointBrush = new SolidBrush(Color.Red);
-            if (pictureMaze.Image == null || pictureMaze.Image.Width != pictureMaze.Width || pictureMaze.Image.Height != pictureMaze.Height)
+
+            pictureMaze.Image = null;
+            pictureMaze.BackColor = Color.White;
+            pictureMaze.Update();
+            await Task.Run(() =>
             {
-                if (pictureMaze.Image != null)
-                {
-                    pictureMaze.Image.Dispose();
-                }
                 pictureMaze.Image = new Bitmap(pictureMaze.Width, pictureMaze.Height);
-            }
-            using (Graphics g = Graphics.FromImage(pictureMaze.Image))
-            {
 
-                g.Clear(Color.White);
-                for (int row = 0; row < gridHeight; row++)
+                using (Graphics g = Graphics.FromImage(pictureMaze.Image))
                 {
-                    for (int col = 0; col < gridWidth; col++)
+
+                    g.Clear(Color.White);
+                    foreach (PictureBox picture in pictureBoxes)
                     {
-                        int x = (int)(col * cellWidth);
-                        int y = (int)(row * cellHeight);
-
-                        int nextX = (int)((col + 1) * cellWidth);
-                        int nextY = (int)((row + 1) * cellHeight);
-
-
-                        g.FillRectangle(cellBrush, x, y, cellWidth, cellHeight);
-                        g.DrawRectangle(wallPen, x, y, nextX - x, nextY - y);
-
-                        if (FillWallsArray != null && FillWallsArray[row, col] == true)
+                        lock (picture)
                         {
-                            g.FillRectangle(wallBrush, x, y, cellWidth, cellHeight);
-                        }
+                            pictureMaze.Invoke(new Action(() => pictureMaze.Controls.Remove(picture)));
+                        };
+                    }
+                    pictureBoxes.Clear();
+                    for (int row = 0; row < gridHeight; row++)
+                    {
+                        for (int col = 0; col < gridWidth; col++)
+                        {
+                            int x = (int)(col * cellWidth);
+                            int y = (int)(row * cellHeight);
 
+                            int nextX = (int)((col + 1) * cellWidth);
+                            int nextY = (int)((row + 1) * cellHeight);
+
+
+
+                            if (FillWallsArray != null && FillWallsArray[row, col] == true)
+                            {
+                                g.FillRectangle(wallBrush, x, y, cellWidth, cellHeight);
+                            }
+                            else
+                            {
+
+                                PictureBox picture = new PictureBox()
+                                {
+                                    Name = $"pictureBox_{row}-{col}",
+                                    Size = new Size((int)cellWidth, (int)cellHeight),
+                                    SizeMode = PictureBoxSizeMode.StretchImage,
+                                    Visible = true,
+                                    Image = backgroundCellImage
+                                };
+                                float scaleX = cellWidth / (int)cellWidth, scaleY = cellHeight / (int)cellHeight;
+                                picture.Scale(new SizeF(scaleX, scaleY));
+                                picture.Location = new Point(x, y);
+                                picture.SendToBack();
+                                lock (picture)
+                                {
+                                    pictureMaze.Invoke(new Action(() => pictureMaze.Controls.Add(picture)));
+                                    picture.Invoke(new Action(() => picture.SendToBack()));
+                                    pictureBoxes.Add(picture);
+                                }
+                            }
+
+                        }
+                    }
+                    if (startPoint != null)
+                    {
+                        int x = (int)(startPoint?.Y * cellWidth);
+                        int y = (int)(startPoint?.X * cellHeight);
+                        g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
+                    }
+
+                    if (endPoint != null)
+                    {
+                        int x = (int)(endPoint?.Y * cellWidth);
+                        int y = (int)(endPoint?.X * cellHeight);
+                        g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
                     }
                 }
-                if (startPoint != null)
-                {
-                    int x = (int)(startPoint?.Y * cellWidth);
-                    int y = (int)(startPoint?.X * cellHeight);
-                    g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
-                }
+            });
 
-                if (endPoint != null)
-                {
-                    int x = (int)(endPoint?.Y * cellWidth);
-                    int y = (int)(endPoint?.X * cellHeight);
-                    g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
-                }
-            }
 
+            var backgroundImage = Image.FromFile(backgroundCellFileName);
+            pictureBox2.BackgroundImage = backgroundImage;
+            pictureBox2.BackgroundImageLayout = ImageLayout.Stretch;
 
             pictureMaze.Invalidate();
+            pictureBox2.Invalidate();
 
         }
         private void outputMazeFile_Click(object sender, EventArgs e)
         {
+            MessageBox.Show("Выбор только из каталога Resources!");
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = false;
             openFileDialog.Filter = "XML файлы (*.xml)|*.xml";
-            openFileDialog.InitialDirectory = KnownFolders.Downloads.Path;
+            openFileDialog.InitialDirectory = $@"{Environment.CurrentDirectory}\Resources";
+            openFileDialog.FileOk += (senderIn, eIn) =>
+            {
+                string[] files = openFileDialog.FileNames;
 
+                foreach (string file in files)
+                {
+                    if (Path.GetDirectoryName(file) != $@"{Environment.CurrentDirectory}\Resources")
+                    {
+                        eIn.Cancel = true;
+                        break;
+                    }
+                }
+            };
 
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 FillWallsArray = ReadMatrixFromXml(openFileDialog.FileName);
-                StepForm = EStepForm.LOADEDMAZE;
-                DrawMaze();
-                MessageBox.Show("Лабиринт успешно загружен из файла!");
+                if (FillWallsArray is null)
+                    MessageBox.Show("Неправильный формат XML файла");
+                else
+                {
+                    StepForm = EStepForm.LOADEDMAZE;
+                    MessageBox.Show("Лабиринт успешно загружен из файла!");
+                }
+
             }
         }
 
@@ -355,6 +471,7 @@ namespace Maze
             foreach (RadioButton rdb in themes)
             {
                 rdb.MouseUp += ThemeRadioButtons_CheckedChanged;
+
             }
 
             Control.ControlCollection modes = ModePassGroupBox.Controls;
@@ -374,21 +491,23 @@ namespace Maze
                 {
                     case "radioButtonHalloween":
                         wallBrush = new SolidBrush(Color.Orange);
-                        DrawMaze();
+                        backgroundCellFileName = @"Resources\halloween.jpg";
                         break;
                     case "radioButtonForest":
                         wallBrush = new SolidBrush(Color.Green);
-                        DrawMaze();
+                        backgroundCellFileName = @"Resources\forest.jpg";
                         break;
                     case "radioButtonNewYear":
                         wallBrush = new SolidBrush(Color.Blue);
-                        DrawMaze();
+                        backgroundCellFileName = @"Resources\new_year.png";
                         break;
                     case "radioButtonSea":
                         wallBrush = new SolidBrush(Color.Aqua);
-                        DrawMaze();
+                        backgroundCellFileName = @"Resources\sea.jpg";
                         break;
                 }
+                backgroundCellImage = Image.FromFile(backgroundCellFileName);
+                DrawMaze();
             }
         }
         private void ModeRadioButtons_CheckedChanged(object sender, EventArgs e)
@@ -426,13 +545,12 @@ namespace Maze
             pictureBox2.Image = bit;
             pictureBox2.Size = Size.Round(new SizeF(Convert.ToInt32(cellWidth), Convert.ToInt32(cellHeight)));
             pictureMaze.Controls.Add(pictureBox2);
-            pictureBox2.BackColor = Color.Transparent;
             int X = Convert.ToInt32(startPoint?.Y * cellWidth + 0.5f);
             int Y = Convert.ToInt32((startPoint?.X) * cellHeight + 0.5f);
             pictureBox2.Location = new Point(X, Y);
             pictureBox2.Enabled = true;
             pictureBox2.Visible = true;
-
+            pictureBox2.BringToFront();
             pictureMaze.Invalidate();
             pictureBox2.Invalidate();
             StepForm = EStepForm.BEGANPASS;
@@ -448,7 +566,7 @@ namespace Maze
                     intArray[i, j] = FillWallsArray[i, j] ? 1 : 0;
                 }
             }
-            
+
             if (radioButtonWave.Checked)
             {
                 var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
@@ -457,15 +575,18 @@ namespace Maze
                 var path = searcher.Search(intArray, start, end);
                 await Task.Delay(1000 / trackBarSpeed.Value);
                 MoveCharacter((int)startPoint?.X, (int)startPoint?.Y + 1);
+                DrawPath(new Point((int)startPoint?.X, (int)startPoint?.Y+1));
                 for (int i = 0; i < path.Length; i++)
                 {
 
                     await Task.Delay(1000 / trackBarSpeed.Value);
                     MoveCharacter(path[i].X, path[i].Y);
+                    DrawPath(new Point(path[i].X, path[i].Y));
 
                 }
                 await Task.Delay(1000 / trackBarSpeed.Value);
                 MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
+                DrawPath(new Point((int)endPoint?.X, (int)endPoint?.Y));
             }
             else if (radioButton1Hands.Checked)
             {
@@ -476,11 +597,12 @@ namespace Maze
 
                     await Task.Delay(1000 / trackBarSpeed.Value);
                     MoveCharacter(path[i, 0], path[i, 1]);
-
+                    DrawPath(new Point(path[i, 0], path[i, 1]));
 
                 }
                 await Task.Delay(1000 / trackBarSpeed.Value);
                 MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
+                DrawPath(new Point((int)endPoint?.X, (int)endPoint?.Y));
             }
 
 

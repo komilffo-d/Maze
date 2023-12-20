@@ -333,6 +333,7 @@
             // 
             // ThemeGroupBox
             // 
+            this.ThemeGroupBox.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.ThemeGroupBox.Controls.Add(this.radioButtonHalloween);
             this.ThemeGroupBox.Controls.Add(this.radioButtonNewYear);
             this.ThemeGroupBox.Controls.Add(this.radioButtonForest);
@@ -345,6 +346,7 @@
             // 
             // ModePassGroupBox
             // 
+            this.ModePassGroupBox.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.ModePassGroupBox.Controls.Add(this.radioButtonHands);
             this.ModePassGroupBox.Controls.Add(this.radioButtonAuto);
             this.ModePassGroupBox.Location = new System.Drawing.Point(22, 270);
@@ -355,6 +357,7 @@
             // 
             // algorithmGroupBox
             // 
+            this.algorithmGroupBox.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.algorithmGroupBox.Controls.Add(this.radioButtonWave);
             this.algorithmGroupBox.Controls.Add(this.radioButton1Hands);
             this.algorithmGroupBox.Location = new System.Drawing.Point(22, 358);

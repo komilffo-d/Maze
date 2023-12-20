@@ -319,9 +319,23 @@ namespace Maze
                     MessageBox.Show("Расставьте точки входа и выхода!");
                     break;
                 case EStepForm.GENERATEDMAZE:
+                    MessageBox.Show("Загрузка только в каталог Resources!");
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
                     saveFileDialog.Filter = "XML файлы (*.xml)|*.xml";
-                    saveFileDialog.InitialDirectory = KnownFolders.Downloads.Path;
+                    saveFileDialog.InitialDirectory = $@"{Environment.CurrentDirectory}\Resources";
+                    saveFileDialog.FileOk += (senderIn, eIn) =>
+                    {
+                        string[] files = saveFileDialog.FileNames;
+
+                        foreach (string file in files)
+                        {
+                            if (Path.GetDirectoryName(file) != $@"{Environment.CurrentDirectory}\Resources")
+                            {
+                                eIn.Cancel = true;
+                                break;
+                            }
+                        }
+                    };
                     if (FillWallsArray is null || FillWallsArray?.Length == 0)
                     {
                         MessageBox.Show("Генерация лабиринта не выполнена!");
