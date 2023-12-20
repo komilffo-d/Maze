@@ -168,8 +168,8 @@ namespace Maze
         {
             if (point.X < 0
                 || point.Y < 0
-                || point.X >= height
-                || point.Y >= width)
+                || point.X >= width
+                || point.Y >= height)
                 return false;
             return true;
         }

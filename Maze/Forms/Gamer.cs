@@ -590,6 +590,8 @@ namespace Maze
             }
             else if (radioButton1Hands.Checked)
             {
+
+/*
                 var path = HandSolver.SolveMaze(intArray, new int[] { (int)startPoint?.X, (int)startPoint?.Y }, new int[] { (int)endPoint?.X, (int)endPoint?.Y - 1 });
 
                 for (int i = 0; i < path.GetLength(0); i++)
@@ -602,7 +604,7 @@ namespace Maze
                 }
                 await Task.Delay(1000 / trackBarSpeed.Value);
                 MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
-                DrawPath(new Point((int)endPoint?.X, (int)endPoint?.Y));
+                DrawPath(new Point((int)endPoint?.X, (int)endPoint?.Y));*/
             }
 
 
