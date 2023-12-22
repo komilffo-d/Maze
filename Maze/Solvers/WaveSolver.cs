@@ -105,18 +105,7 @@ namespace Maze
 
             return GatherPath(pathMap,start,end);
         }
-        public static void PrintToConsole2DArray(int[,] array)
-        {
-            Console.Clear();
-            var width = array.GetLength(0);
-            var height = array.GetLength(1);
-            for (var x = 0; x < width; x++)
-            {
-                for (var y = 0; y < height; y++)
-                    Console.Write($"{array[x, y],3}\t");
-                Console.WriteLine();
-            }
-        }
+
         private bool IsDestinationPotentiallyReachable(int[,] map, Point end)
         {
             var potentialWays = 0;

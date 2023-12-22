@@ -1,278 +1,77 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Maze
 {
-    internal static class HandSolver
+    public class HandSolver
     {
-        public static List<int[]> SolveMaze(int[,] maze, int[] enter, int[] exit)
+  
+        public static List<(int,int)> SolveMaze(int[,] maze, int[] start, int[] end)
         {
-            var points = new List<int[]>();
+            List<(int, int)> result = new List<(int, int)>();
+            int rows = maze.GetLength(0);
+            int cols = maze.GetLength(1);
 
-            var coordinates = enter;
+            int startX = start[0];
+            int startY = start[1];
 
-            Direction dir = Direction.Default;
-            if (enter[0] == 0)
-                dir = Direction.Down;
-            else if (enter[0] == maze.GetLength(0) - 1)
-                dir = Direction.Up;
-            else if (enter[1] == 0)
-                dir = Direction.Right;
-            else if (enter[1] == maze.GetLength(1) - 1)
-                dir = Direction.Left;
+            int endX = end[0];
+            int endY = end[1];
 
-            while (coordinates[0] != exit[0] || coordinates[1] != exit[1])
+            int currentX = startX;
+            int currentY = startY;
+
+            int direction = 0; 
+
+            while (currentX != endX || currentY != endY)
             {
-                switch (dir)
+
+                if (CanMove(maze, currentX, currentY, (direction + 1) % 4))
                 {
-                    case Direction.Right:
-                        {
-                            while (true)
-                            {
-                                if (maze[coordinates[0] + 1, coordinates[1]] == 1 ||
-                                maze[coordinates[0] + 1, coordinates[1]] == 2)
-                                {
-                                    if (maze[coordinates[0], coordinates[1] + 1] == 0 ||
-                                    maze[coordinates[0], coordinates[1] + 1] == 4)
-                                    {
-                                        coordinates[1] += 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    }
-                                    else if (maze[coordinates[0], coordinates[1] + 1] == 3)
-                                    {
-                                        coordinates[1] += 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        dir = Direction.Up;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    dir = Direction.Down;
-                                    coordinates[0] += 1;
-                                    points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    break;
-                                }
-                            }
+                    direction = (direction + 1) % 4;
 
-                            break;
-                        }
-                    case Direction.Down:
-                        {
-                            while (true)
-                            {
-                                if (maze[coordinates[0], coordinates[1] - 1] == 1 ||
-                                maze[coordinates[0], coordinates[1] - 1] == 2)
-                                {
-                                    if (maze[coordinates[0] + 1, coordinates[1]] == 0 ||
-                                    maze[coordinates[0] + 1, coordinates[1]] == 4)
-                                    {
-                                        coordinates[0] += 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    }
-                                    else if (maze[coordinates[0] + 1, coordinates[1]] == 3)
-                                    {
-                                        coordinates[0] += 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        dir = Direction.Right;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    dir = Direction.Left;
-                                    coordinates[1] -= 1;
-                                    points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    break;
-                                }
-                            }
+                    currentX += GetDeltaX(direction);
+                    currentY += GetDeltaY(direction);
 
-                            break;
-                        }
-                    case Direction.Left:
-                        {
-                            while (true)
-                            {
-                                if (maze[coordinates[0] - 1, coordinates[1]] == 1 ||
-                                maze[coordinates[0] - 1, coordinates[1]] == 2)
-                                {
-                                    if (maze[coordinates[0], coordinates[1] - 1] == 0 ||
-                                    maze[coordinates[0], coordinates[1] - 1] == 4)
-                                    {
-                                        coordinates[1] -= 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    }
-                                    else if (maze[coordinates[0], coordinates[1] - 1] == 3)
-                                    {
-                                        coordinates[1] -= 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        dir = Direction.Down;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    dir = Direction.Up;
-                                    coordinates[0] -= 1;
-                                    points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    break;
-                                }
-                            }
 
-                            break;
-                        }
-                    case Direction.Up:
-                        {
-                            while (true)
-                            {
-                                if (maze[coordinates[0], coordinates[1] + 1] == 1 ||
-                                maze[coordinates[0], coordinates[1] + 1] == 2)
-                                {
-                                    if (maze[coordinates[0] - 1, coordinates[1]] == 0 ||
-                                    maze[coordinates[0] - 1, coordinates[1]] == 4)
-                                    {
-                                        coordinates[0] -= 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    }
-                                    else if (maze[coordinates[0] - 1, coordinates[1]] == 3)
-                                    {
-                                        coordinates[0] -= 1;
-                                        points.Add(new int[] { coordinates[0], coordinates[1] });
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        dir = Direction.Left;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    dir = Direction.Right;
-                                    coordinates[1] += 1;
-                                    points.Add(new int[] { coordinates[0], coordinates[1] });
-                                    break;
-                                }
-                            }
+                    result.Add((currentX, currentY));
+                }
+                else if(CanMove(maze, currentX, currentY, direction))
+                {
+                    currentX += GetDeltaX(direction);
+                    currentY += GetDeltaY(direction);
 
-                            break;
-                        }
+                    result.Add((currentX, currentY));
+                }
+                else
+                {
+                    direction = (direction + 3) % 4;
                 }
             }
 
-            return points;
+
+            return result;
         }
-        enum Direction
+
+        static bool CanMove(int[,] maze, int x, int y, int direction)
         {
-            Default,
-            Right,
-            Left,
-            Down,
-            Up
+            int newX = x + GetDeltaX(direction);
+            int newY = y + GetDeltaY(direction);
+
+            return newX >= 0 && newX < maze.GetLength(0) && newY >= 0 && newY < maze.GetLength(1) && maze[newX, newY] == 0;
+        }
+
+        static int GetDeltaX(int direction)
+        {
+            return direction == 2 ? 1 : direction == 0 ? -1 : 0;
+        }
+
+        static int GetDeltaY(int direction)
+        {
+            return direction == 1 ? 1 : direction == 3 ? -1 : 0;
         }
 
 
-
-
-
-
-
-
-
-
-
-
-        /*   public static int[,] SolveMaze(int[,] maze, int[] start, int[] end)
-           {
-               int rows = maze.GetLength(0);
-               int cols = maze.GetLength(1);
-
-               int[,] distances = new int[rows, cols];
-               for (int i = 0; i < rows; i++)
-                   for (int j = 0; j < cols; j++)
-                       distances[i, j] = -1;
-
-               Queue<int[]> queue = new Queue<int[]>();
-               queue.Enqueue(start);
-               distances[start[0], start[1]] = 0;
-
-               int[] dx = { 0, 0, 1, -1 };
-               int[] dy = { 1, -1, 0, 0 };
-
-               while (queue.Count > 0)
-               {
-                   int[] current = queue.Dequeue();
-
-                   for (int i = 0; i < 4; i++)
-                   {
-                       int newRow = current[0] + dx[i];
-                       int newCol = current[1] + dy[i];
-
-                       if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols &&
-                           maze[newRow, newCol] == 0 && distances[newRow, newCol] == -1)
-                       {
-                           distances[newRow, newCol] = distances[current[0], current[1]] + 1;
-                           queue.Enqueue(new int[] { newRow, newCol });
-                       }
-                   }
-               }
-
-               if (distances[end[0], end[1]] == -1)
-               {
-                   return null; // Путь не найден
-               }
-
-               int[,] path = new int[distances[end[0], end[1]] + 1, 2];
-               int pathRow = distances[end[0], end[1]];
-
-               path[pathRow, 0] = end[0];
-               path[pathRow, 1] = end[1];
-
-               while (pathRow > 0)
-               {
-                   int currentRow = path[pathRow, 0];
-                   int currentCol = path[pathRow, 1];
-
-                   for (int i = 0; i < 4; i++)
-                   {
-                       int newRow = currentRow + dx[i];
-                       int newCol = currentCol + dy[i];
-
-                       if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols &&
-                           distances[newRow, newCol] == distances[currentRow, currentCol] - 1)
-                       {
-                           path[--pathRow, 0] = newRow;
-                           path[pathRow, 1] = newCol;
-                           break;
-                       }
-                   }
-               }
-
-               return path;
-           }
-
-           public class Point
-           {
-               public int X { get; set; }
-               public int Y { get; set; }
-
-               public Point(int x, int y)
-               {
-                   X = x;
-                   Y = y;
-               }
-           }*/
     }
+
 }

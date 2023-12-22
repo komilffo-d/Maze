@@ -82,6 +82,8 @@ namespace Maze
                     startGame.Enabled = true;
                     ThemeGroupBox.Enabled = true;
                     trackBarSpeed.Enabled = true;
+                    outputMazeFile.Enabled = true;
+                    radioButtonHands.Checked = true;
                     ThemeRadioButtons_CheckedChanged(radioButtonHalloween, null);
                     ThemeRadioButtons_CheckedChanged(radioButtonNewYear, null);
                     ThemeRadioButtons_CheckedChanged(radioButtonSea, null);
@@ -98,6 +100,7 @@ namespace Maze
                     trackBarSpeed.Visible = false;
                     ThemeGroupBox.Enabled = false;
                     trackBarSpeed.Enabled = false;
+                    outputMazeFile.Enabled = false;
                     pictureMaze.Focus();
                     if (radioButtonAuto.Checked)
                         AutoPassMaze();
@@ -334,78 +337,65 @@ namespace Maze
             pictureMaze.Image = null;
             pictureMaze.BackColor = Color.White;
             pictureMaze.Update();
-            await Task.Run(() =>
+
+            pictureMaze.Image = new Bitmap(pictureMaze.Width, pictureMaze.Height);
+
+            using (Graphics g = Graphics.FromImage(pictureMaze.Image))
             {
-                pictureMaze.Image = new Bitmap(pictureMaze.Width, pictureMaze.Height);
 
-                using (Graphics g = Graphics.FromImage(pictureMaze.Image))
+                g.Clear(Color.White);
+
+                pictureMaze.Controls.Clear();
+                pictureBoxes.Clear();
+                for (int row = 0; row < gridHeight; row++)
                 {
-
-                    g.Clear(Color.White);
-                    foreach (PictureBox picture in pictureBoxes)
+                    for (int col = 0; col < gridWidth; col++)
                     {
-                        lock (picture)
+                        int x = (int)(col * cellWidth);
+                        int y = (int)(row * cellHeight);
+
+                        if (FillWallsArray != null && FillWallsArray[row, col] == true)
                         {
-                            pictureMaze.Invoke(new Action(() => pictureMaze.Controls.Remove(picture)));
-                        };
-                    }
-                    pictureBoxes.Clear();
-                    for (int row = 0; row < gridHeight; row++)
-                    {
-                        for (int col = 0; col < gridWidth; col++)
+                            g.FillRectangle(wallBrush, x, y, cellWidth, cellHeight);
+                        }
+                        else
                         {
-                            int x = (int)(col * cellWidth);
-                            int y = (int)(row * cellHeight);
 
-                            int nextX = (int)((col + 1) * cellWidth);
-                            int nextY = (int)((row + 1) * cellHeight);
-
-
-
-                            if (FillWallsArray != null && FillWallsArray[row, col] == true)
+                            PictureBox picture = new PictureBox()
                             {
-                                g.FillRectangle(wallBrush, x, y, cellWidth, cellHeight);
-                            }
-                            else
-                            {
+                                Name = $"pictureBox_{row}-{col}",
+                                Size = new Size((int)cellWidth, (int)cellHeight),
+                                SizeMode = PictureBoxSizeMode.StretchImage,
+                                Visible = true,
+                                Image = backgroundCellImage
+                            };
+                            float scaleX = cellWidth / (int)cellWidth, scaleY = cellHeight / (int)cellHeight;
+                            picture.Scale(new SizeF(scaleX, scaleY));
+                            pictureMaze.Controls.Add(picture);
+                            picture.SendToBack();
+                            pictureBoxes.Add(picture);
+                            picture.Location = new Point(x, y);
 
-                                PictureBox picture = new PictureBox()
-                                {
-                                    Name = $"pictureBox_{row}-{col}",
-                                    Size = new Size((int)cellWidth, (int)cellHeight),
-                                    SizeMode = PictureBoxSizeMode.StretchImage,
-                                    Visible = true,
-                                    Image = backgroundCellImage
-                                };
-                                float scaleX = cellWidth / (int)cellWidth, scaleY = cellHeight / (int)cellHeight;
-                                picture.Scale(new SizeF(scaleX, scaleY));
-                                picture.Location = new Point(x, y);
-                                picture.SendToBack();
-                                lock (picture)
-                                {
-                                    pictureMaze.Invoke(new Action(() => pictureMaze.Controls.Add(picture)));
-                                    picture.Invoke(new Action(() => picture.SendToBack()));
-                                    pictureBoxes.Add(picture);
-                                }
-                            }
 
                         }
-                    }
-                    if (startPoint != null)
-                    {
-                        int x = (int)(startPoint?.Y * cellWidth);
-                        int y = (int)(startPoint?.X * cellHeight);
-                        g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
-                    }
 
-                    if (endPoint != null)
-                    {
-                        int x = (int)(endPoint?.Y * cellWidth);
-                        int y = (int)(endPoint?.X * cellHeight);
-                        g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
                     }
                 }
-            });
+                if (startPoint != null)
+                {
+                    int x = (int)(startPoint?.Y * cellWidth);
+                    int y = (int)(startPoint?.X * cellHeight);
+                    g.FillRectangle(startPointBrush, x, y, cellWidth, cellHeight);
+                }
+
+                if (endPoint != null)
+                {
+                    int x = (int)(endPoint?.Y * cellWidth);
+                    int y = (int)(endPoint?.X * cellHeight);
+                    g.FillRectangle(endPointBrush, x, y, cellWidth, cellHeight);
+                }
+            }
+
 
 
             var backgroundImage = Image.FromFile(backgroundCellFileName);
@@ -544,6 +534,9 @@ namespace Maze
             bit.MakeTransparent();
             pictureBox2.Image = bit;
             pictureBox2.Size = Size.Round(new SizeF(Convert.ToInt32(cellWidth), Convert.ToInt32(cellHeight)));
+            float scaleX = cellWidth / (int)cellWidth, scaleY = cellHeight / (int)cellHeight;
+            pictureBox2.Scale(new SizeF(scaleX, scaleY));
+
             pictureMaze.Controls.Add(pictureBox2);
             int X = Convert.ToInt32(startPoint?.Y * cellWidth + 0.5f);
             int Y = Convert.ToInt32((startPoint?.X) * cellHeight + 0.5f);
@@ -566,45 +559,41 @@ namespace Maze
                     intArray[i, j] = FillWallsArray[i, j] ? 1 : 0;
                 }
             }
-
             if (radioButtonWave.Checked)
             {
+
                 var searcher = new WaveResolver(WaveResolver.SearchMethod.Path4);
                 var start = new WaveResolver.Point((int)startPoint?.X, (int)startPoint?.Y + 1);
                 var end = new WaveResolver.Point((int)endPoint?.X, (int)endPoint?.Y - 1);
                 var path = searcher.Search(intArray, start, end);
-                await Task.Delay(1000 / trackBarSpeed.Value);
+                await Task.Delay(300 / trackBarSpeed.Value);
                 MoveCharacter((int)startPoint?.X, (int)startPoint?.Y + 1);
-                DrawPath(new Point((int)startPoint?.X, (int)startPoint?.Y+1));
+                DrawPath(new Point((int)startPoint?.X, (int)startPoint?.Y + 1));
                 for (int i = 0; i < path.Length; i++)
                 {
 
-                    await Task.Delay(1000 / trackBarSpeed.Value);
+                    await Task.Delay(300 / trackBarSpeed.Value);
                     MoveCharacter(path[i].X, path[i].Y);
                     DrawPath(new Point(path[i].X, path[i].Y));
 
                 }
-                await Task.Delay(1000 / trackBarSpeed.Value);
+                await Task.Delay(300 / trackBarSpeed.Value);
                 MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
                 DrawPath(new Point((int)endPoint?.X, (int)endPoint?.Y));
             }
             else if (radioButton1Hands.Checked)
             {
+                intArray[(int)endPoint?.X, (int)endPoint?.Y] = 0;
 
-/*
-                var path = HandSolver.SolveMaze(intArray, new int[] { (int)startPoint?.X, (int)startPoint?.Y }, new int[] { (int)endPoint?.X, (int)endPoint?.Y - 1 });
 
-                for (int i = 0; i < path.GetLength(0); i++)
+                var path = HandSolver.SolveMaze(intArray, new int[] { (int)startPoint?.X, (int)startPoint?.Y }, new int[] { (int)endPoint?.X, (int)endPoint?.Y });
+
+                foreach (var cell in path)
                 {
-
-                    await Task.Delay(1000 / trackBarSpeed.Value);
-                    MoveCharacter(path[i, 0], path[i, 1]);
-                    DrawPath(new Point(path[i, 0], path[i, 1]));
-
+                    await Task.Delay(300 / trackBarSpeed.Value);
+                    MoveCharacter(cell.Item1, cell.Item2);
+                    DrawPath(new Point(cell.Item1, cell.Item2));
                 }
-                await Task.Delay(1000 / trackBarSpeed.Value);
-                MoveCharacter((int)endPoint?.X, (int)endPoint?.Y);
-                DrawPath(new Point((int)endPoint?.X, (int)endPoint?.Y));*/
             }
 
 
